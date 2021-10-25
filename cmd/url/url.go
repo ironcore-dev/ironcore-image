@@ -41,8 +41,9 @@ const (
 func Command(requestResolverFactory common.RequestResolverFactory) *cobra.Command {
 	var layer LayerType
 	cmd := &cobra.Command{
-		Use:  "url image[:tag] [layer-media-type]",
-		Args: cobra.ExactArgs(1),
+		Use:   "url image[:tag] [layer-media-type]",
+		Short: "Compute the URL for retrieving a remote image manifest or a layer.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			ref := args[0]

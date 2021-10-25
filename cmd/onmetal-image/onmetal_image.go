@@ -17,7 +17,7 @@ package onmetalimage
 import (
 	"github.com/onmetal/onmetal-image/cmd/build"
 	"github.com/onmetal/onmetal-image/cmd/common"
-	delete "github.com/onmetal/onmetal-image/cmd/delete"
+	"github.com/onmetal/onmetal-image/cmd/delete"
 	"github.com/onmetal/onmetal-image/cmd/inspect"
 	"github.com/onmetal/onmetal-image/cmd/list"
 	"github.com/onmetal/onmetal-image/cmd/pull"
@@ -40,7 +40,8 @@ func Command() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use: "onmetal-image",
+		Use:   "onmetal-image",
+		Short: "Commands to interface with onmetal images.",
 	}
 
 	cmd.AddCommand(

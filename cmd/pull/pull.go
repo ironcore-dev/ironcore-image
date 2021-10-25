@@ -27,8 +27,9 @@ import (
 
 func Command(storeFactory common.StoreFactory, registryFactory common.RemoteRegistryFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "pull ref",
-		Args: cobra.ExactArgs(1),
+		Use:   "pull image[:tag]",
+		Short: "Pull an image from a remote registry determined by the image name.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			ref := args[0]

@@ -36,7 +36,8 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use: "build",
+		Use:   "build",
+		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Run(ctx, storeFactory, tagName, rootFSPath, initRAMFSPath, kernelPath)

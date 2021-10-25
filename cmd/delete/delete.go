@@ -25,8 +25,9 @@ import (
 
 func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "delete image[:tag]",
-		Args: cobra.ExactArgs(1),
+		Use:   "delete image[:tag]",
+		Short: "Delete a local image.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			srcImage := args[0]

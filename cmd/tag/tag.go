@@ -25,8 +25,9 @@ import (
 
 func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "tag source-image[:tag] target-image[:tag]",
-		Args: cobra.ExactArgs(2),
+		Use:   "tag source-image[:tag] target-image[:tag]",
+		Short: "Tag a local image with a given name (and optional tag).",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			srcImage := args[0]

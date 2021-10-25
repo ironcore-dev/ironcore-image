@@ -31,8 +31,9 @@ import (
 
 func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "inspect image[:tag]",
-		Args: cobra.ExactArgs(1),
+		Use:   "inspect image[:tag]",
+		Short: "Inspect a local image, i.e. get its manifest and some of its metadata.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			srcImage := args[0]

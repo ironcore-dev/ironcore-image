@@ -34,7 +34,8 @@ import (
 
 func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "list",
+		Use:   "list",
+		Short: "List all images that are available locally.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			return Run(ctx, storeFactory)
