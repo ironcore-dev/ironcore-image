@@ -38,7 +38,7 @@ const (
 	InitRAMFS LayerType = "initramfs"
 )
 
-func Command(urlerFactory common.URLerFactory) *cobra.Command {
+func Command(requestResolverFactory common.RequestResolverFactory) *cobra.Command {
 	var layer LayerType
 	cmd := &cobra.Command{
 		Use:  "url image[:tag] [layer-media-type]",
@@ -46,7 +46,7 @@ func Command(urlerFactory common.URLerFactory) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			ref := args[0]
-			return Run(ctx, urlerFactory, ref, layer)
+			return Run(ctx, requestResolverFactory, ref, layer)
 		},
 	}
 	cmd.Flags().StringVar((*string)(&layer), "layer", "", "Specify to get the URL to a specific layer.")
@@ -60,13 +60,13 @@ var layerTypeToMediaType = map[LayerType]string{
 	Kernel:    onmetalimage.KernelLayerMediaType,
 }
 
-func Run(ctx context.Context, urlerFactory common.URLerFactory, ref string, layer LayerType) error {
-	u, err := urlerFactory()
+func Run(ctx context.Context, requestResolverFactory common.RequestResolverFactory, ref string, layer LayerType) error {
+	resolver, err := requestResolverFactory()
 	if err != nil {
-		return fmt.Errorf("error creating urler: %w", err)
+		return fmt.Errorf("error creating request resolver: %w", err)
 	}
 
-	info, err := u.Resolve(ctx, ref)
+	info, err := resolver.Resolve(ctx, ref)
 	if err != nil {
 		return fmt.Errorf("error resolving ref %s: %w", ref, err)
 	}

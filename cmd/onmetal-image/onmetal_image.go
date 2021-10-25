@@ -34,9 +34,9 @@ func Command() *cobra.Command {
 	)
 
 	var (
-		storeFactory    = common.DefaultStoreFactory(&storePath)
-		registryFactory = common.DefaultRemoteRegistryFactory(configPaths)
-		urlerFactory    = common.DefaultURLerFactory(configPaths)
+		storeFactory           = common.DefaultStoreFactory(&storePath)
+		registryFactory        = common.DefaultRemoteRegistryFactory(configPaths)
+		requestResolverFactory = common.DefaultRequestResolverFactory(configPaths)
 	)
 
 	cmd := &cobra.Command{
@@ -51,7 +51,7 @@ func Command() *cobra.Command {
 		list.Command(storeFactory),
 		inspect.Command(storeFactory),
 		delete.Command(storeFactory),
-		url.Command(urlerFactory),
+		url.Command(requestResolverFactory),
 	)
 
 	cmd.PersistentFlags().StringVar(&storePath, common.RecommendedStorePathFlagName, common.DefaultStorePath, common.RecommendedStorePathFlagUsage)

@@ -18,7 +18,7 @@ import (
 	dockerauth "oras.land/oras-go/pkg/auth/docker"
 )
 
-type URLer struct {
+type RequestResolver struct {
 	resolver remotes.Resolver
 	hosts    docker.RegistryHosts
 }
@@ -225,7 +225,7 @@ func (i *layerInfo) Descriptor() ocispec.Descriptor {
 	return i.desc
 }
 
-func (u *URLer) Resolve(ctx context.Context, ref string) (ManifestInfo, error) {
+func (u *RequestResolver) Resolve(ctx context.Context, ref string) (ManifestInfo, error) {
 	r, err := reference.ParseNamed(ref)
 	if err != nil {
 		return nil, fmt.Errorf("ref %s is no named reference: %w", ref, err)
@@ -269,19 +269,19 @@ func (u *URLer) Resolve(ctx context.Context, ref string) (ManifestInfo, error) {
 	return info, nil
 }
 
-type URLerOptions struct {
+type RequestResolverOptions struct {
 	ConfigPaths []string
 	Client      *http.Client
 	Header      http.Header
 }
 
-func (o *URLerOptions) SetDefaults() {
+func (o *RequestResolverOptions) SetDefaults() {
 	if o.Client == nil {
 		o.Client = http.DefaultClient
 	}
 }
 
-func NewURLer(o URLerOptions) (*URLer, error) {
+func NewRequestResolver(o RequestResolverOptions) (*RequestResolver, error) {
 	o.SetDefaults()
 
 	authC, err := dockerauth.NewClient(o.ConfigPaths...)
@@ -307,7 +307,7 @@ func NewURLer(o URLerOptions) (*URLer, error) {
 		docker.WithAuthorizer(authorizer),
 	)
 
-	return &URLer{
+	return &RequestResolver{
 		resolver: resolver,
 		hosts:    hosts,
 	}, nil

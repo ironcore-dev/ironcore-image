@@ -60,11 +60,11 @@ func DefaultRemoteRegistryFactory(configPaths []string) RemoteRegistryFactory {
 	}
 }
 
-type URLerFactory func() (*docker.URLer, error)
+type RequestResolverFactory func() (*docker.RequestResolver, error)
 
-func DefaultURLerFactory(configPaths []string) URLerFactory {
-	return func() (*docker.URLer, error) {
-		return docker.NewURLer(docker.URLerOptions{
+func DefaultRequestResolverFactory(configPaths []string) RequestResolverFactory {
+	return func() (*docker.RequestResolver, error) {
+		return docker.NewRequestResolver(docker.RequestResolverOptions{
 			ConfigPaths: configPaths,
 		})
 	}
