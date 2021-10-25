@@ -17,61 +17,65 @@ package build
 import (
 	"context"
 	"fmt"
+	"image"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/onmetal/onmetal-image/cmd/common"
 
-	"github.com/onmetal/onmetal-image/client"
+	onmetalimage "github.com/onmetal/onmetal-image"
+
+	"github.com/onmetal/onmetal-image/oci/imageutil"
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func Command(storeFactory common.StoreFactory) *cobra.Command {
 	var (
 		tagName       string
 		rootFSPath    string
 		initRAMFSPath string
-		vmlinuzPath   string
+		kernelPath    string
 	)
 
 	cmd := &cobra.Command{
 		Use: "build",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, tagName, rootFSPath, initRAMFSPath, vmlinuzPath)
+			return Run(ctx, storeFactory, tagName, rootFSPath, initRAMFSPath, kernelPath)
 		},
 	}
 
 	cmd.Flags().StringVar(&tagName, "tag", "", "Optional tag of image.")
 	cmd.Flags().StringVar(&rootFSPath, "rootfs-file", "", "Path pointing to a root fs file.")
 	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path pointing to an initram fs file.")
-	cmd.Flags().StringVar(&vmlinuzPath, "vmlinuz-file", "", "Path pointing to a kernel file (usually ending with 'vmlinuz').")
+	cmd.Flags().StringVar(&kernelPath, "kernel-file", "", "Path pointing to a kernel file (usually ending with 'vmlinuz').")
 
 	return cmd
 }
 
-func Run(ctx context.Context, tagName, rootFSPath, initRAMFSPath, vmlinuzPath string) error {
-	var ref reference.Named
-	if tagName != "" {
-		var err error
-		ref, err = reference.ParseNamed(tagName)
-		if err != nil {
-			return err
-		}
-	}
-
-	c, err := client.New()
+func Run(ctx context.Context, storeFactory common.StoreFactory, ref, rootFSPath, initRAMFSPath, kernelPath string) error {
+	s, err := storeFactory()
 	if err != nil {
-		return fmt.Errorf("could not create client: %w", err)
+		return fmt.Errorf("could not create store: %w", err)
 	}
 
-	built, err := c.Build(ctx, rootFSPath, initRAMFSPath, vmlinuzPath, &client.BuildOptions{Reference: ref})
+	img, err := imageutil.NewJSONConfigBuilder(&image.Config{}, imageutil.WithMediaType(onmetalimage.ConfigMediaType)).
+		FileLayer(rootFSPath, imageutil.WithMediaType(onmetalimage.RootFSLayerMediaType)).
+		FileLayer(initRAMFSPath, imageutil.WithMediaType(onmetalimage.InitRAMFSLayerMediaType)).
+		FileLayer(kernelPath, imageutil.WithMediaType(onmetalimage.KernelLayerMediaType)).
+		Complete()
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
 	}
 
-	if ref != nil {
-		fmt.Println("Successfully built", ref, built.Digest.Encoded())
+	if ref != "" {
+		if err := s.Push(ctx, ref, img); err != nil {
+			return fmt.Errorf("error pushing to ref %s: %w", ref, err)
+		}
+		fmt.Println("Successfully built", ref, img.Descriptor().Digest.Encoded())
 	} else {
-		fmt.Println("Successfully built", built.Digest.Encoded())
+		if err := s.Put(ctx, img); err != nil {
+			return fmt.Errorf("error putting image: %w", err)
+		}
+		fmt.Println("Successfully built", img.Descriptor().Digest.Encoded())
 	}
 	return nil
 }

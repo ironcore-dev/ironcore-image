@@ -17,6 +17,8 @@ package main
 import (
 	"os"
 
+	"github.com/onmetal/onmetal-image/cmd/common"
+
 	"github.com/go-logr/zapr"
 	onmetalimage "github.com/onmetal/onmetal-image/cmd/onmetal-image"
 
@@ -29,6 +31,8 @@ import (
 func main() {
 	ctx, cancel := signalcontext.OnInterrupt()
 	defer cancel()
+
+	ctx = common.SetupContext(ctx)
 
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {

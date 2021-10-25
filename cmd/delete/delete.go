@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package push
+package delete
 
 import (
 	"context"
@@ -23,45 +23,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Command(storeFactory common.StoreFactory, registryFactory common.RemoteRegistryFactory) *cobra.Command {
+func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "push ref",
+		Use:  "delete image[:tag]",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			name := args[0]
-			return Run(ctx, storeFactory, registryFactory, name)
+			srcImage := args[0]
+			return Run(ctx, storeFactory, srcImage)
 		},
 	}
 
 	return cmd
 }
 
-func Run(
-	ctx context.Context,
-	storeFactory common.StoreFactory,
-	registryFactory common.RemoteRegistryFactory,
-	ref string,
-) error {
-	store, err := storeFactory()
+func Run(ctx context.Context, storeFactory common.StoreFactory, ref string) error {
+	s, err := storeFactory()
 	if err != nil {
-		return fmt.Errorf("error creating store: %w", err)
+		return fmt.Errorf("could not create store: %w", err)
 	}
 
-	registry, err := registryFactory()
+	if err := s.Delete(ctx, ref); err != nil {
+		return fmt.Errorf("error deleting ref %s: %w", ref, err)
+	}
+
+	ref, err = common.FuzzyResolveRef(ctx, s, ref)
 	if err != nil {
-		return fmt.Errorf("error creating remote registry: %w", err)
+		return fmt.Errorf("error resolving source: %w", err)
 	}
 
-	img, err := store.Resolve(ctx, ref)
-	if err != nil {
-		return fmt.Errorf("error resolving ref %s: %w", ref, err)
+	if err := s.Delete(ctx, ref); err != nil {
+		return fmt.Errorf("error deleting ref %s: %w", ref, err)
 	}
 
-	if err := registry.Push(ctx, ref, img); err != nil {
-		return fmt.Errorf("error pushing image to %s: %w", ref, err)
-	}
-
-	fmt.Println("Successfully pushed", ref, img.Descriptor().Digest.Encoded())
+	fmt.Println("Successfully deleted", ref)
 	return nil
 }

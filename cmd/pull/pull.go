@@ -18,49 +18,48 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/onmetal/onmetal-image/oci/image"
 
-	"oras.land/oras-go/pkg/auth/docker"
+	"github.com/onmetal/onmetal-image/cmd/common"
 
-	"github.com/onmetal/onmetal-image/client"
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func Command(storeFactory common.StoreFactory, registryFactory common.RemoteRegistryFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "pull ref",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			ref := args[0]
-			return Run(ctx, ref)
+			return Run(ctx, storeFactory, registryFactory, ref)
 		},
 	}
 
 	return cmd
 }
 
-func Run(ctx context.Context, ref string) error {
-	name, err := reference.ParseNamed(ref)
+func Run(
+	ctx context.Context,
+	storeFactory common.StoreFactory,
+	registryFactory common.RemoteRegistryFactory,
+	ref string,
+) error {
+	s, err := storeFactory()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating store: %w", err)
 	}
 
-	dockerClient, err := docker.NewClient()
+	registry, err := registryFactory()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create remote registry: %w", err)
 	}
 
-	c, err := client.New(client.WithAuthorizer(dockerClient))
+	img, err := image.Copy(ctx, s, registry, ref)
 	if err != nil {
-		return fmt.Errorf("error creating client: %w", err)
+		return fmt.Errorf("error pulling ref %s: %w", ref, err)
 	}
 
-	desc, err := c.Pull(ctx, name)
-	if err != nil {
-		return fmt.Errorf("error pulling image: %w", err)
-	}
-
-	fmt.Println("Successfully pulled", ref, desc.Digest.Encoded())
+	fmt.Println("Successfully pulled", ref, img.Descriptor().Digest.Encoded())
 	return nil
 }

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package image
+package onmetal_image
 
 const (
 	ConfigMediaType         = "application/vnd.onmetal.image.config.v1alpha1+json"
 	RootFSLayerMediaType    = "application/vnd.onmetal.image.rootfs.v1alpha1.rootfs"
 	InitRAMFSLayerMediaType = "application/vnd.onmetal.image.initramfs.v1alpha1.initramfs"
-	VMLinuzLayerMediaType   = "application/vnd.onmetal.image.vmlinuz.v1alpha1.vmlinuz"
+	KernelLayerMediaType    = "application/vnd.onmetal.image.vmlinuz.v1alpha1.vmlinuz"
 )
 
-type Image struct {
+type Config struct {
 }

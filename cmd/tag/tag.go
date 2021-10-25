@@ -18,17 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/onmetal/onmetal-image/cmd/common"
 
-	"github.com/distribution/distribution/reference"
-
-	"github.com/onmetal/onmetal-image/indexer"
-
-	"github.com/onmetal/onmetal-image/client"
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "tag source-image[:tag] target-image[:tag]",
 		Args: cobra.ExactArgs(2),
@@ -36,33 +31,28 @@ func Command() *cobra.Command {
 			ctx := cmd.Context()
 			srcImage := args[0]
 			tgtImage := args[1]
-			return Run(ctx, srcImage, tgtImage)
+			return Run(ctx, storeFactory, srcImage, tgtImage)
 		},
 	}
 
 	return cmd
 }
 
-func Run(ctx context.Context, srcImage, tgtImage string) error {
-	c, err := client.New()
+func Run(ctx context.Context, storeFactory common.StoreFactory, srcImage, tgtImage string) error {
+	s, err := storeFactory()
 	if err != nil {
-		return fmt.Errorf("could not create client: %w", err)
+		return fmt.Errorf("could not create store: %w", err)
 	}
 
-	src, err := indexer.ResolveFuzzyRef(ctx, c.Indexer(), srcImage, indexer.WithMediaType(ocispec.MediaTypeImageManifest))
+	desc, err := common.FuzzyResolveRef(ctx, s, srcImage)
 	if err != nil {
 		return fmt.Errorf("error resolving source: %w", err)
 	}
 
-	ref, err := reference.ParseNamed(tgtImage)
-	if err != nil {
-		return fmt.Errorf("invalid reference %s: %w", tgtImage, err)
-	}
-
-	if _, err := c.Tag(ctx, src, ref); err != nil {
+	if err := s.Tag(ctx, desc, tgtImage); err != nil {
 		return fmt.Errorf("error tagging image: %w", err)
 	}
 
-	fmt.Println("Successfully tagged", ref, "with", src.Digest.Encoded())
+	fmt.Println("Successfully tagged", tgtImage, "with", desc)
 	return nil
 }

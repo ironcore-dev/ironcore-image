@@ -16,25 +16,46 @@ package onmetalimage
 
 import (
 	"github.com/onmetal/onmetal-image/cmd/build"
+	"github.com/onmetal/onmetal-image/cmd/common"
+	delete "github.com/onmetal/onmetal-image/cmd/delete"
+	"github.com/onmetal/onmetal-image/cmd/inspect"
 	"github.com/onmetal/onmetal-image/cmd/list"
 	"github.com/onmetal/onmetal-image/cmd/pull"
 	"github.com/onmetal/onmetal-image/cmd/push"
 	"github.com/onmetal/onmetal-image/cmd/tag"
+	"github.com/onmetal/onmetal-image/cmd/url"
 	"github.com/spf13/cobra"
 )
 
 func Command() *cobra.Command {
+	var (
+		storePath   string
+		configPaths []string
+	)
+
+	var (
+		storeFactory    = common.DefaultStoreFactory(&storePath)
+		registryFactory = common.DefaultRemoteRegistryFactory(configPaths)
+		urlerFactory    = common.DefaultURLerFactory(configPaths)
+	)
+
 	cmd := &cobra.Command{
 		Use: "onmetal-image",
 	}
 
 	cmd.AddCommand(
-		build.Command(),
-		push.Command(),
-		pull.Command(),
-		tag.Command(),
-		list.Command(),
+		build.Command(storeFactory),
+		push.Command(storeFactory, registryFactory),
+		pull.Command(storeFactory, registryFactory),
+		tag.Command(storeFactory),
+		list.Command(storeFactory),
+		inspect.Command(storeFactory),
+		delete.Command(storeFactory),
+		url.Command(urlerFactory),
 	)
+
+	cmd.PersistentFlags().StringVar(&storePath, common.RecommendedStorePathFlagName, common.DefaultStorePath, common.RecommendedStorePathFlagUsage)
+	cmd.PersistentFlags().StringSliceVar(&configPaths, common.RecommendedDockerConfigPathsFlagName, nil, common.RecommendedDockerConfigPathsFlagName)
 
 	return cmd
 }

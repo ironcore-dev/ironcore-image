@@ -19,54 +19,48 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 
-	"github.com/onmetal/onmetal-image/indexer"
+	"github.com/onmetal/onmetal-image/cmd/common"
+
+	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/distribution/distribution/reference"
 
-	"github.com/onmetal/onmetal-image/refutil"
-
-	"github.com/onmetal/onmetal-image/client"
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "list",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx)
+			return Run(ctx, storeFactory)
 		},
 	}
 
 	return cmd
 }
 
-func Run(ctx context.Context) error {
-	c, err := client.New()
+func Run(ctx context.Context, storeFactory common.StoreFactory) error {
+	s, err := storeFactory()
 	if err != nil {
-		return fmt.Errorf("could not create client: %w", err)
+		return fmt.Errorf("could not create layout: %w", err)
 	}
 
-	descs, err := c.Indexer().List(ctx, indexer.WithMediaType(ocispec.MediaTypeImageManifest))
+	descs, err := s.Layout().Indexer().List(ctx, matcher.MediaTypes(ocispec.MediaTypeImageManifest))
 	if err != nil {
 		return fmt.Errorf("error listing images: %w", err)
 	}
 
 	// Sort for some deterministic output
 	sort.Slice(descs, func(i, j int) bool {
-		r1, _ := refutil.ReferenceFromDescriptor(descs[i])
-		r2, _ := refutil.ReferenceFromDescriptor(descs[j])
-		if r1 == nil && r2 == nil {
-			return descs[i].Digest > descs[j].Digest
-		}
-		if r2 == nil {
-			return true
-		}
-		if r1 == nil {
-			return false
+		r1 := descs[i].Annotations[ocispec.AnnotationRefName]
+		r2 := descs[i].Annotations[ocispec.AnnotationRefName]
+		if res := strings.Compare(r1, r2); res != 0 {
+			return res < 0
 		}
 		return descs[i].Digest > descs[j].Digest
 	})
@@ -76,10 +70,10 @@ func Run(ctx context.Context) error {
 	for _, item := range descs {
 		repo := "<none>"
 		tag := "<none>"
-		r, _ := refutil.ReferenceFromDescriptor(item)
-		if r != nil {
-			repo = r.Name()
-			if tagged, ok := r.(reference.Tagged); ok {
+		r := item.Annotations[ocispec.AnnotationRefName]
+		if ref, err := reference.ParseNamed(r); err == nil {
+			repo = ref.Name()
+			if tagged, ok := ref.(reference.Tagged); ok {
 				tag = tagged.Tag()
 			}
 		}
