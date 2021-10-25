@@ -22,7 +22,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
+	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
 
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -34,10 +34,10 @@ var ErrNotFound = errors.New("not found")
 
 type Indexer interface {
 	Add(ctx context.Context, desc ocispec.Descriptor) error
-	List(ctx context.Context, match matcher.Matcher) ([]ocispec.Descriptor, error)
-	Find(ctx context.Context, match matcher.Matcher) (ocispec.Descriptor, error)
-	Delete(ctx context.Context, match matcher.Matcher) error
-	Replace(ctx context.Context, desc ocispec.Descriptor, match matcher.Matcher) error
+	List(ctx context.Context, match descriptormatcher.Matcher) ([]ocispec.Descriptor, error)
+	Find(ctx context.Context, match descriptormatcher.Matcher) (ocispec.Descriptor, error)
+	Delete(ctx context.Context, match descriptormatcher.Matcher) error
+	Replace(ctx context.Context, desc ocispec.Descriptor, match descriptormatcher.Matcher) error
 }
 
 type fileIndexer struct {
@@ -82,7 +82,7 @@ func (f *fileIndexer) Add(ctx context.Context, desc ocispec.Descriptor) error {
 	return f.writeIndex(index)
 }
 
-func (f *fileIndexer) Find(ctx context.Context, match matcher.Matcher) (ocispec.Descriptor, error) {
+func (f *fileIndexer) Find(ctx context.Context, match descriptormatcher.Matcher) (ocispec.Descriptor, error) {
 	index, err := f.readIndex()
 	if err != nil {
 		return ocispec.Descriptor{}, err
@@ -96,7 +96,7 @@ func (f *fileIndexer) Find(ctx context.Context, match matcher.Matcher) (ocispec.
 	return ocispec.Descriptor{}, fmt.Errorf("%w: no index matching", ErrNotFound)
 }
 
-func (f *fileIndexer) List(ctx context.Context, match matcher.Matcher) ([]ocispec.Descriptor, error) {
+func (f *fileIndexer) List(ctx context.Context, match descriptormatcher.Matcher) ([]ocispec.Descriptor, error) {
 	index, err := f.readIndex()
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (f *fileIndexer) List(ctx context.Context, match matcher.Matcher) ([]ocispe
 	return res, nil
 }
 
-func (f *fileIndexer) Replace(ctx context.Context, desc ocispec.Descriptor, match matcher.Matcher) error {
+func (f *fileIndexer) Replace(ctx context.Context, desc ocispec.Descriptor, match descriptormatcher.Matcher) error {
 	index, err := f.readIndex()
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (f *fileIndexer) Replace(ctx context.Context, desc ocispec.Descriptor, matc
 	return nil
 }
 
-func (f *fileIndexer) Delete(ctx context.Context, match matcher.Matcher) error {
+func (f *fileIndexer) Delete(ctx context.Context, match descriptormatcher.Matcher) error {
 	index, err := f.readIndex()
 	if err != nil {
 		return err

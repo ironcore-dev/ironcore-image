@@ -20,11 +20,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
+
 	ocicontent "github.com/onmetal/onmetal-image/oci/content"
 
 	ociimage "github.com/onmetal/onmetal-image/oci/image"
 
-	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
 	"github.com/onmetal/onmetal-image/oci/indexer"
 
 	"github.com/containerd/containerd/content/local"
@@ -49,7 +50,7 @@ func (l *Layout) AddImage(ctx context.Context, image ociimage.Image) error {
 	return nil
 }
 
-func (l *Layout) ReplaceImage(ctx context.Context, image ociimage.Image, match matcher.Matcher) error {
+func (l *Layout) ReplaceImage(ctx context.Context, image ociimage.Image, match descriptormatcher.Matcher) error {
 	if err := ocicontent.WriteImageToIngester(ctx, l.store, image); err != nil {
 		return fmt.Errorf("error writing image: %w", err)
 	}
@@ -61,7 +62,7 @@ func (l *Layout) ReplaceImage(ctx context.Context, image ociimage.Image, match m
 }
 
 func (l *Layout) Image(ctx context.Context, desc ocispec.Descriptor) (ociimage.Image, error) {
-	desc, err := l.indexer.Find(ctx, matcher.Equal(desc))
+	desc, err := l.indexer.Find(ctx, descriptormatcher.Equal(desc))
 	if err != nil {
 		return nil, fmt.Errorf("could not find descriptor in index: %w", err)
 	}
@@ -70,7 +71,7 @@ func (l *Layout) Image(ctx context.Context, desc ocispec.Descriptor) (ociimage.I
 }
 
 func (l *Layout) Images(ctx context.Context) ([]ociimage.Image, error) {
-	descs, err := l.indexer.List(ctx, matcher.Every)
+	descs, err := l.indexer.List(ctx, descriptormatcher.Every)
 	if err != nil {
 		return nil, err
 	}

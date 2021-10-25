@@ -15,95 +15,17 @@
 package content
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 
 	ociimage "github.com/onmetal/onmetal-image/oci/image"
-
-	"github.com/opencontainers/go-digest"
 
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/remotes"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
-
-func DigestAndSizeFromFile(filename string) (dgst digest.Digest, size int64, err error) {
-	fp, err := os.Open(filename)
-	if err != nil {
-		return "", 0, fmt.Errorf("error opening file %s: %w", filename, err)
-	}
-	defer func() { _ = fp.Close() }()
-
-	info, err := fp.Stat()
-	if err != nil {
-		return "", 0, fmt.Errorf("error getting stats of file %s: %w", filename, err)
-	}
-
-	dgst, err = digest.FromReader(fp)
-	if err != nil {
-		return "", 0, fmt.Errorf("error getting digest from file %s: %w", filename, err)
-	}
-
-	return dgst, info.Size(), nil
-}
-
-func WriteFileToIngester(ctx context.Context, ing content.Ingester, desc ocispec.Descriptor, filename string) (ocispec.Descriptor, error) {
-	dgst, size, err := DigestAndSizeFromFile(filename)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-
-	desc.Digest = dgst
-	desc.Size = size
-
-	ref := remotes.MakeRefKey(ctx, desc)
-
-	f, err := os.Open(filename)
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("error opening file %s: %w", filename, err)
-	}
-	defer func() { _ = f.Close() }()
-
-	if err := content.WriteBlob(ctx, ing, ref, f, desc); err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("error writing file %s: %w", filename, err)
-	}
-	return desc, nil
-}
-
-func WriteJSONEncodedValueToIngester(ctx context.Context, ing content.Ingester, desc ocispec.Descriptor, v interface{}) (ocispec.Descriptor, error) {
-	data, err := json.Marshal(v)
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("could not convert %v to json: %w", v, err)
-	}
-
-	return WriteDataToIngester(ctx, ing, desc, data)
-}
-
-func WriteDataToIngester(ctx context.Context, ing content.Ingester, desc ocispec.Descriptor, data []byte) (ocispec.Descriptor, error) {
-	desc.Size = int64(len(data))
-	desc.Digest = digest.FromBytes(data)
-
-	ref := remotes.MakeRefKey(ctx, desc)
-
-	if err := content.WriteBlob(ctx, ing, ref, bytes.NewReader(data), desc); err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("error writing data: %w", err)
-	}
-	return desc, nil
-}
-
-func ReadJSONBlob(ctx context.Context, provider content.Provider, desc ocispec.Descriptor, v interface{}) error {
-	rc, err := provider.ReaderAt(ctx, desc)
-	if err != nil {
-		return fmt.Errorf("error opening reader: %w", err)
-	}
-	defer func() { _ = rc.Close() }()
-
-	return json.NewDecoder(io.NewSectionReader(rc, 0, desc.Size)).Decode(v)
-}
 
 type closeReader struct {
 	io.Reader
@@ -178,9 +100,14 @@ type image struct {
 }
 
 func (i *image) Manifest(ctx context.Context) (*ocispec.Manifest, error) {
+	data, err := content.ReadBlob(ctx, i.provider, i.descriptor)
+	if err != nil {
+		return nil, fmt.Errorf("error reading blob for descriptor %s: %w", i.descriptor.Digest, err)
+	}
+
 	manifest := &ocispec.Manifest{}
-	if err := ReadJSONBlob(ctx, i.provider, i.descriptor, manifest); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, manifest); err != nil {
+		return nil, fmt.Errorf("error unmarshaling manifest: %w", err)
 	}
 	return manifest, nil
 }
@@ -191,10 +118,7 @@ func (i *image) Config(ctx context.Context) (ociimage.Layer, error) {
 		return nil, fmt.Errorf("error reading manifest: %w", err)
 	}
 
-	return &layer{
-		provider:   i.provider,
-		descriptor: manifest.Config,
-	}, nil
+	return Layer(i.provider, manifest.Config), nil
 }
 
 func (i *image) Layers(ctx context.Context) ([]ociimage.Layer, error) {
@@ -205,10 +129,7 @@ func (i *image) Layers(ctx context.Context) ([]ociimage.Layer, error) {
 
 	layers := make([]ociimage.Layer, 0, len(manifest.Layers))
 	for _, desc := range manifest.Layers {
-		layers = append(layers, &layer{
-			provider:   i.provider,
-			descriptor: desc,
-		})
+		layers = append(layers, Layer(i.provider, desc))
 	}
 	return layers, nil
 }

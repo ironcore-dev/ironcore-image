@@ -22,9 +22,10 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
+
 	"github.com/onmetal/onmetal-image/cmd/common"
 
-	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/distribution/distribution/reference"
@@ -51,7 +52,7 @@ func Run(ctx context.Context, storeFactory common.StoreFactory) error {
 		return fmt.Errorf("could not create layout: %w", err)
 	}
 
-	descs, err := s.Layout().Indexer().List(ctx, matcher.MediaTypes(ocispec.MediaTypeImageManifest))
+	descs, err := s.Layout().Indexer().List(ctx, descriptormatcher.MediaTypes(ocispec.MediaTypeImageManifest))
 	if err != nil {
 		return fmt.Errorf("error listing images: %w", err)
 	}

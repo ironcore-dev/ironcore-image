@@ -42,9 +42,7 @@ func NewBuilder(config image.Layer) *Builder {
 }
 
 func NewBytesConfigBuilder(data []byte, opts ...DescriptorOpt) *Builder {
-	return &Builder{
-		config: BytesLayer(data, opts...),
-	}
+	return NewBuilder(BytesLayer(data, opts...))
 }
 
 func NewJSONConfigBuilder(v interface{}, opts ...DescriptorOpt) *Builder {
@@ -53,9 +51,7 @@ func NewJSONConfigBuilder(v interface{}, opts ...DescriptorOpt) *Builder {
 		return &Builder{err: err}
 	}
 
-	return &Builder{
-		config: config,
-	}
+	return NewBuilder(config)
 }
 
 func (b *Builder) BytesLayer(data []byte, opts ...DescriptorOpt) *Builder {

@@ -18,11 +18,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
+
 	"github.com/onmetal/onmetal-image/oci/image"
 
 	"github.com/distribution/distribution/reference"
-	"github.com/onmetal/onmetal-image/oci/descriptorutil"
-	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
 	"github.com/onmetal/onmetal-image/oci/layout"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -32,8 +32,8 @@ type Store struct {
 }
 
 func (s *Store) Put(ctx context.Context, img image.Image) error {
-	desc := descriptorutil.Plain(img.Descriptor())
-	if err := s.layout.ReplaceImage(ctx, img, matcher.Equal(desc)); err != nil {
+	desc := ocispec.Descriptor{MediaType: img.Descriptor().MediaType, Digest: img.Descriptor().Digest}
+	if err := s.layout.ReplaceImage(ctx, img, descriptormatcher.Equal(desc)); err != nil {
 		return fmt.Errorf("could not create image: %w", err)
 	}
 	return nil
@@ -49,15 +49,15 @@ func (s *Store) Push(ctx context.Context, ref string, img image.Image) error {
 	return nil
 }
 
-func (s *Store) referenceToMatcher(ref string) (matcher.Matcher, error) {
+func (s *Store) referenceToMatcher(ref string) (descriptormatcher.Matcher, error) {
 	r, err := reference.ParseAnyReference(ref)
 	if err != nil {
 		return nil, fmt.Errorf("invalid ref: %w", err)
 	}
 
-	var matchers []matcher.Matcher
+	var matchers []descriptormatcher.Matcher
 	if digested, ok := r.(reference.Digested); ok {
-		matchers = append(matchers, matcher.Digests(digested.Digest()))
+		matchers = append(matchers, descriptormatcher.Digests(digested.Digest()))
 	}
 
 	if named, ok := r.(reference.Named); ok {
@@ -66,13 +66,13 @@ func (s *Store) referenceToMatcher(ref string) (matcher.Matcher, error) {
 			name = fmt.Sprintf("%s:%s", name, tagged.Tag())
 		}
 
-		matchers = append(matchers, matcher.Name(name))
+		matchers = append(matchers, descriptormatcher.Name(name))
 	}
 
 	if len(matchers) == 0 {
 		return nil, fmt.Errorf("could not construct matchers from ref %s", ref)
 	}
-	return matcher.And(matchers...), nil
+	return descriptormatcher.And(matchers...), nil
 }
 
 func (s *Store) Delete(ctx context.Context, ref string) error {
@@ -129,7 +129,7 @@ func (s *Store) Tag(ctx context.Context, srcRef, dstRef string) error {
 		},
 	}
 
-	if err := s.layout.Indexer().Replace(ctx, dstDesc, matcher.Name(dstRef)); err != nil {
+	if err := s.layout.Indexer().Replace(ctx, dstDesc, descriptormatcher.Name(dstRef)); err != nil {
 		return fmt.Errorf("error indexing ref descriptor: %w", err)
 	}
 	return nil
@@ -139,7 +139,7 @@ func (s *Store) Untag(ctx context.Context, ref string) error {
 	if _, err := reference.ParseNamed(ref); err != nil {
 		return fmt.Errorf("ref has to be a named reference: %w", err)
 	}
-	if err := s.layout.Indexer().Delete(ctx, matcher.Name(ref)); err != nil {
+	if err := s.layout.Indexer().Delete(ctx, descriptormatcher.Name(ref)); err != nil {
 		return fmt.Errorf("error removing index entries: %w", err)
 	}
 	return nil

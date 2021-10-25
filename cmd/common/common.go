@@ -20,6 +20,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
+
 	"github.com/containerd/containerd/remotes"
 	onmetalimage "github.com/onmetal/onmetal-image"
 
@@ -27,7 +29,6 @@ import (
 
 	"github.com/distribution/distribution/reference"
 
-	"github.com/onmetal/onmetal-image/oci/descriptorutil/matcher"
 	"github.com/onmetal/onmetal-image/oci/remote"
 
 	"github.com/onmetal/onmetal-image/oci/store"
@@ -89,7 +90,7 @@ func FuzzyResolveRef(ctx context.Context, store *store.Store, ref string) (strin
 		return ref, nil
 	}
 
-	dsc, err := store.Layout().Indexer().Find(ctx, matcher.EncodedDigestPrefix(ref))
+	dsc, err := store.Layout().Indexer().Find(ctx, descriptormatcher.EncodedDigestPrefix(ref))
 	if err != nil {
 		return "", fmt.Errorf("error looking up ref %s as digest: %w", ref, err)
 	}
