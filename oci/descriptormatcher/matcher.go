@@ -69,14 +69,14 @@ func Annotation(key, value string) Matcher {
 }
 
 func MediaTypes(mediaTypes ...string) Matcher {
-	s := sets.NewString(mediaTypes...)
+	s := sets.New[string](mediaTypes...)
 	return func(descriptor ocispec.Descriptor) bool {
 		return s.Has(descriptor.MediaType)
 	}
 }
 
 func Digests(digests ...digest.Digest) Matcher {
-	s := sets.NewString()
+	s := sets.New[string]()
 	for _, d := range digests {
 		s.Insert(string(d))
 	}

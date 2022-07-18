@@ -16,27 +16,27 @@ package sets
 
 type Empty struct{}
 
-type String map[string]Empty
+type Set[E comparable] map[E]Empty
 
-func (s String) Insert(items ...string) {
+func New[E comparable](items ...E) Set[E] {
+	s := make(Set[E])
+	s.Insert(items...)
+	return s
+}
+
+func (s Set[E]) Insert(items ...E) {
 	for _, item := range items {
 		s[item] = Empty{}
 	}
 }
 
-func (s String) Has(item string) bool {
+func (s Set[E]) Has(item E) bool {
 	_, ok := s[item]
 	return ok
 }
 
-func (s String) Delete(items ...string) {
+func (s Set[E]) Delete(items ...E) {
 	for _, item := range items {
 		delete(s, item)
 	}
-}
-
-func NewString(items ...string) String {
-	s := make(String)
-	s.Insert(items...)
-	return s
 }
