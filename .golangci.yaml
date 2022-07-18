@@ -7,6 +7,8 @@ linters:
     - ineffassign
     - misspell
     - goimports
+  disable:
+    - structcheck # Enable again when there is support for go1.18, see https://github.com/golangci/golangci-lint/issues/2649
 
 severity:
   default-severity: error
