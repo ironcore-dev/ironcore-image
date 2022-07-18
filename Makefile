@@ -25,6 +25,10 @@ addlicense: ## Add license headers to all go files.
 fmt: ## Run go fmt against code.
 	goimports -w .
 
+.PHONY: lint
+lint: ## Lints the code-base using golangci-lint.
+	golangci-lint run ./...
+
 .PHONY: checklicense
 checklicense: ## Check that every file has a license header present.
 	find . -name '*.go' -exec go run github.com/google/addlicense  -check -c 'OnMetal authors' {} +
@@ -34,15 +38,14 @@ generate: ## Generate code (mocks etc.).
 	go generate ./...
 
 .PHONY: test
-test: generate fmt checklicense ## Run tests.
+test: generate fmt lint checklicense test-only ## Run tests.
+
+.PHONY: test-only
+test-only: ## Run tests only without generating / checking anything before.
 	go test ./... -coverprofile cover.out
 
-.PHONY: lint
-lint: ## Run the linter.
-	golangci-lint run ./...
-
 .PHONY: check
-check: generate test lint checklicense ## Execute multiple checks.
+check: generate addlicense fmt lint test-only ## Check the codebase. Useful before committing / pushing.
 
 .PHONY: build
 build: generate fmt ## Build the binary
