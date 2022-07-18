@@ -32,19 +32,11 @@ const Filename = "index.json"
 
 var ErrNotFound = errors.New("not found")
 
-type Indexer interface {
-	Add(ctx context.Context, desc ocispec.Descriptor) error
-	List(ctx context.Context, match descriptormatcher.Matcher) ([]ocispec.Descriptor, error)
-	Find(ctx context.Context, match descriptormatcher.Matcher) (ocispec.Descriptor, error)
-	Delete(ctx context.Context, match descriptormatcher.Matcher) error
-	Replace(ctx context.Context, desc ocispec.Descriptor, match descriptormatcher.Matcher) error
-}
-
-type fileIndexer struct {
+type Indexer struct {
 	path string
 }
 
-func (f *fileIndexer) readIndex() (*ocispec.Index, error) {
+func (f *Indexer) readIndex() (*ocispec.Index, error) {
 	data, err := os.ReadFile(f.path)
 	if err != nil {
 		return nil, fmt.Errorf("error reading index file: %w", err)
@@ -58,7 +50,7 @@ func (f *fileIndexer) readIndex() (*ocispec.Index, error) {
 	return index, nil
 }
 
-func (f *fileIndexer) writeIndex(index *ocispec.Index) error {
+func (f *Indexer) writeIndex(index *ocispec.Index) error {
 	data, err := json.Marshal(index)
 	if err != nil {
 		return fmt.Errorf("could not convert index to json: %w", err)
@@ -71,7 +63,7 @@ func (f *fileIndexer) writeIndex(index *ocispec.Index) error {
 	return nil
 }
 
-func (f *fileIndexer) Add(ctx context.Context, desc ocispec.Descriptor) error {
+func (f *Indexer) Add(ctx context.Context, desc ocispec.Descriptor) error {
 	index, err := f.readIndex()
 	if err != nil {
 		return err
@@ -82,7 +74,7 @@ func (f *fileIndexer) Add(ctx context.Context, desc ocispec.Descriptor) error {
 	return f.writeIndex(index)
 }
 
-func (f *fileIndexer) Find(ctx context.Context, match descriptormatcher.Matcher) (ocispec.Descriptor, error) {
+func (f *Indexer) Find(ctx context.Context, match descriptormatcher.Matcher) (ocispec.Descriptor, error) {
 	index, err := f.readIndex()
 	if err != nil {
 		return ocispec.Descriptor{}, err
@@ -96,7 +88,7 @@ func (f *fileIndexer) Find(ctx context.Context, match descriptormatcher.Matcher)
 	return ocispec.Descriptor{}, fmt.Errorf("%w: no index matching", ErrNotFound)
 }
 
-func (f *fileIndexer) List(ctx context.Context, match descriptormatcher.Matcher) ([]ocispec.Descriptor, error) {
+func (f *Indexer) List(ctx context.Context, match descriptormatcher.Matcher) ([]ocispec.Descriptor, error) {
 	index, err := f.readIndex()
 	if err != nil {
 		return nil, err
@@ -111,7 +103,7 @@ func (f *fileIndexer) List(ctx context.Context, match descriptormatcher.Matcher)
 	return res, nil
 }
 
-func (f *fileIndexer) Replace(ctx context.Context, desc ocispec.Descriptor, match descriptormatcher.Matcher) error {
+func (f *Indexer) Replace(ctx context.Context, desc ocispec.Descriptor, match descriptormatcher.Matcher) error {
 	index, err := f.readIndex()
 	if err != nil {
 		return err
@@ -131,7 +123,7 @@ func (f *fileIndexer) Replace(ctx context.Context, desc ocispec.Descriptor, matc
 	return nil
 }
 
-func (f *fileIndexer) Delete(ctx context.Context, match descriptormatcher.Matcher) error {
+func (f *Indexer) Delete(ctx context.Context, match descriptormatcher.Matcher) error {
 	index, err := f.readIndex()
 	if err != nil {
 		return err
@@ -151,12 +143,12 @@ func (f *fileIndexer) Delete(ctx context.Context, match descriptormatcher.Matche
 	return nil
 }
 
-func New(path string) (Indexer, error) {
+func New(path string) (*Indexer, error) {
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		return nil, fmt.Errorf("error creating base directory: %w", err)
 	}
 
-	indexer := &fileIndexer{
+	indexer := &Indexer{
 		path: path,
 	}
 	if _, err := indexer.readIndex(); err != nil {

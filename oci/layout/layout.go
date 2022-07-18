@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 
 	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
+	"github.com/onmetal/onmetal-image/oci/local"
 
 	ocicontent "github.com/onmetal/onmetal-image/oci/content"
 
@@ -28,39 +29,39 @@ import (
 
 	"github.com/onmetal/onmetal-image/oci/indexer"
 
-	"github.com/containerd/containerd/content/local"
-
-	"github.com/containerd/containerd/content"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type Layout struct {
-	store   content.Store
-	indexer indexer.Indexer
+	store   *local.Store
+	indexer *indexer.Indexer
 }
 
+// AddImage adds an image to the layout.
 func (l *Layout) AddImage(ctx context.Context, image ociimage.Image) error {
 	if err := ocicontent.WriteImageToIngester(ctx, l.store, image); err != nil {
 		return fmt.Errorf("error writing image: %w", err)
 	}
 
-	if err := l.Indexer().Add(ctx, image.Descriptor()); err != nil {
+	if err := l.indexer.Add(ctx, image.Descriptor()); err != nil {
 		return fmt.Errorf("error adding image %s to index: %w", image.Descriptor().Digest, err)
 	}
 	return nil
 }
 
+// ReplaceImage replaces the target image with the new one.
 func (l *Layout) ReplaceImage(ctx context.Context, image ociimage.Image, match descriptormatcher.Matcher) error {
 	if err := ocicontent.WriteImageToIngester(ctx, l.store, image); err != nil {
 		return fmt.Errorf("error writing image: %w", err)
 	}
 
-	if err := l.Indexer().Replace(ctx, image.Descriptor(), match); err != nil {
+	if err := l.indexer.Replace(ctx, image.Descriptor(), match); err != nil {
 		return fmt.Errorf("error adding image %s to index: %w", image.Descriptor().Digest, err)
 	}
 	return nil
 }
 
+// Image returns the image for the given descriptor.
 func (l *Layout) Image(ctx context.Context, desc ocispec.Descriptor) (ociimage.Image, error) {
 	desc, err := l.indexer.Find(ctx, descriptormatcher.Equal(desc))
 	if err != nil {
@@ -70,6 +71,7 @@ func (l *Layout) Image(ctx context.Context, desc ocispec.Descriptor) (ociimage.I
 	return ocicontent.Image(l.store, desc), nil
 }
 
+// Images lists all images.
 func (l *Layout) Images(ctx context.Context) ([]ociimage.Image, error) {
 	descs, err := l.indexer.List(ctx, descriptormatcher.Every)
 	if err != nil {
@@ -83,48 +85,26 @@ func (l *Layout) Images(ctx context.Context) ([]ociimage.Image, error) {
 	return res, nil
 }
 
-func (l *Layout) Indexer() indexer.Indexer {
+// Indexer returns the indexer.Indexer of the oci layout.
+func (l *Layout) Indexer() *indexer.Indexer {
 	return l.indexer
 }
 
-func (l *Layout) Store() content.Store {
+// Store returns the backing local.Store of the oci layout.
+func (l *Layout) Store() *local.Store {
 	return l.store
-}
-
-type Options struct {
-	NewStore   func(string) (content.Store, error)
-	NewIndexer func(string) (indexer.Indexer, error)
-}
-
-func NewOptions() *Options {
-	return &Options{
-		NewStore:   local.NewStore,
-		NewIndexer: indexer.New,
-	}
-}
-
-func (o *Options) ApplyOptions(opts []Option) {
-	for _, opt := range opts {
-		opt.ApplyToOptions(o)
-	}
-}
-
-type Option interface {
-	ApplyToOptions(opts *Options)
 }
 
 const ociLayoutContent = `{"imageLayoutVersion":"1.0.0"}`
 
-func New(path string, opts ...Option) (*Layout, error) {
-	o := NewOptions()
-	o.ApplyOptions(opts)
-
-	store, err := o.NewStore(path)
+// New returns a new oci layout.
+func New(path string) (*Layout, error) {
+	store, err := local.NewStore(path)
 	if err != nil {
 		return nil, fmt.Errorf("error creating store: %w", err)
 	}
 
-	index, err := o.NewIndexer(filepath.Join(path, indexer.Filename))
+	index, err := indexer.New(filepath.Join(path, indexer.Filename))
 	if err != nil {
 		return nil, fmt.Errorf("error creating indexer: %w", err)
 	}
