@@ -22,4 +22,5 @@ const (
 )
 
 type Config struct {
+	CommandLine string `json:"commandLine,omitempty"`
 }

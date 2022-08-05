@@ -41,6 +41,12 @@ func WithAnnotations(annotations map[string]string) DescriptorOpt {
 	}
 }
 
+func WithPlatform(platform ocispec.Platform) DescriptorOpt {
+	return func(desc *ocispec.Descriptor) {
+		desc.Platform = &platform
+	}
+}
+
 func JSONValueLayer(v interface{}, opts ...DescriptorOpt) (image.Layer, error) {
 	data, err := json.Marshal(v)
 	if err != nil {

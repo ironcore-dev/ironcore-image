@@ -1,6 +1,6 @@
 module github.com/onmetal/onmetal-image
 
-go 1.18
+go 1.19
 
 require (
 	github.com/containerd/containerd v1.6.6

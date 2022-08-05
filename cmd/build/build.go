@@ -17,7 +17,6 @@ package build
 import (
 	"context"
 	"fmt"
-	"image"
 
 	"github.com/onmetal/onmetal-image/cmd/common"
 
@@ -33,6 +32,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		rootFSPath    string
 		initRAMFSPath string
 		kernelPath    string
+		commandLine   string
 	)
 
 	cmd := &cobra.Command{
@@ -40,7 +40,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, rootFSPath, initRAMFSPath, kernelPath)
+			return Run(ctx, storeFactory, tagName, rootFSPath, initRAMFSPath, kernelPath, commandLine)
 		},
 	}
 
@@ -48,21 +48,30 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd.Flags().StringVar(&rootFSPath, "rootfs-file", "", "Path pointing to a root fs file.")
 	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path pointing to an initram fs file.")
 	cmd.Flags().StringVar(&kernelPath, "kernel-file", "", "Path pointing to a kernel file (usually ending with 'vmlinuz').")
+	cmd.Flags().StringVar(&commandLine, "command-line", "", "Command line arguments to supply to the kernel.")
 
 	return cmd
 }
 
-func Run(ctx context.Context, storeFactory common.StoreFactory, ref, rootFSPath, initRAMFSPath, kernelPath string) error {
+func Run(
+	ctx context.Context,
+	storeFactory common.StoreFactory,
+	ref, rootFSPath, initRAMFSPath, kernelPath, commandLine string,
+) error {
 	s, err := storeFactory()
 	if err != nil {
 		return fmt.Errorf("could not create store: %w", err)
 	}
 
-	img, err := imageutil.NewJSONConfigBuilder(&image.Config{}, imageutil.WithMediaType(onmetalimage.ConfigMediaType)).
-		FileLayer(rootFSPath, imageutil.WithMediaType(onmetalimage.RootFSLayerMediaType)).
-		FileLayer(initRAMFSPath, imageutil.WithMediaType(onmetalimage.InitRAMFSLayerMediaType)).
-		FileLayer(kernelPath, imageutil.WithMediaType(onmetalimage.KernelLayerMediaType)).
-		Complete()
+	img, err :=
+		imageutil.NewJSONConfigBuilder(
+			&onmetalimage.Config{CommandLine: commandLine},
+			imageutil.WithMediaType(onmetalimage.ConfigMediaType),
+		).
+			FileLayer(rootFSPath, imageutil.WithMediaType(onmetalimage.RootFSLayerMediaType)).
+			FileLayer(initRAMFSPath, imageutil.WithMediaType(onmetalimage.InitRAMFSLayerMediaType)).
+			FileLayer(kernelPath, imageutil.WithMediaType(onmetalimage.KernelLayerMediaType)).
+			Complete()
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
 	}
