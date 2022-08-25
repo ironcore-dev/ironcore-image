@@ -13,7 +13,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799
 	github.com/sethvargo/go-signalcontext v0.1.0
 	github.com/spf13/cobra v1.5.0
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.23.0
 	oras.land/oras-go v1.2.0
 )
 
