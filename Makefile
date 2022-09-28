@@ -52,6 +52,6 @@ build: generate fmt ## Build the binary
 	go build -o bin/onmetal-image ./cmd
 
 .PHONY: install
-install: build ## Install the binary to /usr/local/bin
-	cp bin/onmetal-image /usr/local/bin
+install: ## Install the binary to $GOBIN/onmetal-image.
+	go install .
 
