@@ -10,7 +10,7 @@ onmetal-image contains a library to simplify interaction with an OCI-comptabile
 registry and it holds the specification as well as a simple command-line client
 for the onmetal image.
 
-Onmetal images are used for machine / volume pool implementors (see [onmetal-api](https://github.com/onmetal-onmetal-api))
+Onmetal images are used for machine / volume pool implementors (see [onmetal-api](https://github.com/onmetal/onmetal-api))
 to prepare and bootstrap machines and machine disks.
 
 They are custom OCI images, meaning they can managed with any OCI compatible registry.
