@@ -1,4 +1,4 @@
-package onmetal_image_test
+package onmetalimage_test
 
 import (
 	"context"

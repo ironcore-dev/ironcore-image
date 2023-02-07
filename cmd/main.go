@@ -15,24 +15,25 @@
 package main
 
 import (
+	"context"
 	"os"
-
-	"github.com/onmetal/onmetal-image/cmd/common"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-logr/zapr"
-	onmetalimage "github.com/onmetal/onmetal-image/cmd/onmetal-image"
+	onmetalimage "github.com/onmetal/onmetal-image"
+	cmdonmetalimage "github.com/onmetal/onmetal-image/cmd/onmetal-image"
 
 	"go.uber.org/zap"
 
 	"github.com/go-logr/logr"
-	"github.com/sethvargo/go-signalcontext"
 )
 
 func main() {
-	ctx, cancel := signalcontext.OnInterrupt()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	ctx = common.SetupContext(ctx)
+	ctx = onmetalimage.SetupContext(ctx)
 
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
@@ -41,7 +42,7 @@ func main() {
 	log := zapr.NewLogger(zapLog)
 
 	ctx = logr.NewContext(ctx, log)
-	if err := onmetalimage.Command().ExecuteContext(ctx); err != nil {
+	if err := cmdonmetalimage.Command().ExecuteContext(ctx); err != nil {
 		log.Error(err, "Error running command")
 		os.Exit(1)
 	}

@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onmetal_image
+package onmetalimage
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
+	"github.com/containerd/containerd/remotes"
 	"github.com/onmetal/onmetal-image/oci/image"
 )
 
@@ -53,8 +54,19 @@ func readImageConfig(ctx context.Context, img image.Image) (*Config, error) {
 	return config, nil
 }
 
+// SetupContext sets up context.Context to not log warnings on onmetal media types.
+func SetupContext(ctx context.Context) context.Context {
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, ConfigMediaType, "config-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, RootFSLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, InitRAMFSLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, KernelLayerMediaType, "layer-")
+	return ctx
+}
+
 // ResolveImage resolves an oci image to an onmetal Image.
 func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
+	ctx = SetupContext(ctx)
+
 	config, err := readImageConfig(ctx, ociImg)
 	if err != nil {
 		return nil, err

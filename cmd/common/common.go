@@ -22,9 +22,6 @@ import (
 
 	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
 
-	"github.com/containerd/containerd/remotes"
-	onmetalimage "github.com/onmetal/onmetal-image"
-
 	"github.com/onmetal/onmetal-image/docker"
 
 	"github.com/distribution/distribution/reference"
@@ -96,13 +93,4 @@ func FuzzyResolveRef(ctx context.Context, store *store.Store, ref string) (strin
 	}
 
 	return dsc.Digest.String(), nil
-}
-
-// SetupContext sets up context.Context to not log warnings on onmetal media types.
-func SetupContext(ctx context.Context) context.Context {
-	ctx = remotes.WithMediaTypeKeyPrefix(ctx, onmetalimage.ConfigMediaType, "config-")
-	ctx = remotes.WithMediaTypeKeyPrefix(ctx, onmetalimage.RootFSLayerMediaType, "layer-")
-	ctx = remotes.WithMediaTypeKeyPrefix(ctx, onmetalimage.InitRAMFSLayerMediaType, "layer-")
-	ctx = remotes.WithMediaTypeKeyPrefix(ctx, onmetalimage.KernelLayerMediaType, "layer-")
-	return ctx
 }
