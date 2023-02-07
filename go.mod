@@ -11,7 +11,7 @@ require (
 	github.com/onsi/gomega v1.26.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
-	github.com/sethvargo/go-signalcontext v0.1.0
+	github.com/sethvargo/go-signalcontext v0.2.1
 	github.com/spf13/cobra v1.6.1
 	go.uber.org/zap v1.24.0
 	oras.land/oras-go v1.2.2
