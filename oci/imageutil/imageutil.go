@@ -128,3 +128,14 @@ func FileLayer(path string, opts ...DescriptorOpt) (image.Layer, error) {
 		path: path,
 	}, nil
 }
+
+// ReadLayerContent reads the layer contents into a byte slice.
+func ReadLayerContent(ctx context.Context, layer image.Layer) ([]byte, error) {
+	rc, err := layer.Content(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rc.Close() }()
+
+	return io.ReadAll(rc)
+}
