@@ -74,6 +74,8 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			img.Kernel = layer
 		case RootFSLayerMediaType:
 			img.RootFS = layer
+		default:
+			return nil, fmt.Errorf("unknown layer type %q", layer.Descriptor().MediaType)
 		}
 	}
 	var missing []string
