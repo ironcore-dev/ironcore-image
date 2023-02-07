@@ -22,8 +22,13 @@ help: ## Display this help.
 add-license: addlicense ## Add license headers to all go files.
 	find . -name '*.go' -exec $(ADDLICENSE) -c 'OnMetal authors' {} +
 
+.PHONY: fmt
 fmt: goimports ## Run goimports against code.
 	$(GOIMPORTS) -w .
+
+.PHONY: vet
+vet: ## Run go vet against code.
+	go vet ./...
 
 .PHONY: lint
 lint: ## Lints the code-base using golangci-lint.
@@ -38,7 +43,7 @@ generate: ## Generate code (mocks etc.).
 	go generate ./...
 
 .PHONY: test
-test: generate fmt lint check-license test-only ## Run tests.
+test: generate fmt vet check-license test-only ## Run tests.
 
 .PHONY: test-only
 test-only: ## Run tests only without generating / checking anything before.
