@@ -50,7 +50,7 @@ test-only: ## Run tests only without generating / checking anything before.
 	go test ./... -coverprofile cover.out
 
 .PHONY: check
-check: generate addlicense fmt lint test-only ## Check the codebase. Useful before committing / pushing.
+check: generate add-license fmt lint test-only ## Check the codebase. Useful before committing / pushing.
 
 .PHONY: build
 build: generate fmt ## Build the binary
