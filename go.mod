@@ -6,7 +6,7 @@ require (
 	github.com/containerd/containerd v1.7.0
 	github.com/distribution/distribution v2.8.1+incompatible
 	github.com/go-logr/logr v1.2.4
-	github.com/go-logr/zapr v1.2.3
+	github.com/go-logr/zapr v1.2.4
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
 	github.com/opencontainers/go-digest v1.0.0
