@@ -3,7 +3,7 @@ module github.com/onmetal/onmetal-image
 go 1.20
 
 require (
-	github.com/containerd/containerd v1.7.2
+	github.com/containerd/containerd v1.7.3
 	github.com/distribution/distribution v2.8.2+incompatible
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.4
