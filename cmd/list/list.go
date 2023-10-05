@@ -28,7 +28,7 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/distribution/reference"
 
 	"github.com/spf13/cobra"
 )

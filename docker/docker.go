@@ -28,7 +28,7 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/distribution/reference"
 	dockerauth "oras.land/oras-go/pkg/auth/docker"
 )
 

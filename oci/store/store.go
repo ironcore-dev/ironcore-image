@@ -22,7 +22,7 @@ import (
 
 	"github.com/onmetal/onmetal-image/oci/image"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/onmetal/onmetal-image/oci/layout"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
