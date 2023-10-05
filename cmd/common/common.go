@@ -24,7 +24,7 @@ import (
 
 	"github.com/onmetal/onmetal-image/docker"
 
-	"github.com/distribution/distribution/reference"
+	"github.com/distribution/reference"
 
 	"github.com/onmetal/onmetal-image/oci/remote"
 
