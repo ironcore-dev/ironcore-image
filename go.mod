@@ -7,7 +7,7 @@ require (
 	github.com/distribution/reference v0.5.0
 	github.com/go-logr/logr v1.3.0
 	github.com/go-logr/zapr v1.3.0
-	github.com/onsi/ginkgo/v2 v2.13.1
+	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.30.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
