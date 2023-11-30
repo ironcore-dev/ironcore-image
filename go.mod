@@ -13,7 +13,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/spf13/cobra v1.8.0
 	go.uber.org/zap v1.26.0
-	oras.land/oras-go v1.2.3
+	oras.land/oras-go v1.2.4
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
-	github.com/docker/cli v23.0.3+incompatible // indirect
+	github.com/docker/cli v24.0.6+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v24.0.7+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
