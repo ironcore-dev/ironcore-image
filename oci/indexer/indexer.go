@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
-
+	"github.com/ironcore-dev/ironcore-image/oci/descriptormatcher"
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )

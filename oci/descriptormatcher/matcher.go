@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/onmetal/onmetal-image/utils/sets"
+	"github.com/ironcore-dev/ironcore-image/utils/sets"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )

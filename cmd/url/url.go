@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/onmetal/onmetal-image/docker"
+	ironcoreimage "github.com/ironcore-dev/ironcore-image"
+	"github.com/ironcore-dev/ironcore-image/cmd/common"
+	"github.com/ironcore-dev/ironcore-image/docker"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
-	onmetalimage "github.com/onmetal/onmetal-image"
-
-	"github.com/onmetal/onmetal-image/cmd/common"
-
 	"github.com/spf13/cobra"
 )
 
@@ -56,9 +53,9 @@ func Command(requestResolverFactory common.RequestResolverFactory) *cobra.Comman
 }
 
 var layerTypeToMediaType = map[LayerType]string{
-	RootFS:    onmetalimage.RootFSLayerMediaType,
-	InitRAMFS: onmetalimage.InitRAMFSLayerMediaType,
-	Kernel:    onmetalimage.KernelLayerMediaType,
+	RootFS:    ironcoreimage.RootFSLayerMediaType,
+	InitRAMFS: ironcoreimage.InitRAMFSLayerMediaType,
+	Kernel:    ironcoreimage.KernelLayerMediaType,
 }
 
 func Run(ctx context.Context, requestResolverFactory common.RequestResolverFactory, ref string, layer LayerType) error {

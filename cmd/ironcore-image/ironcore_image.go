@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onmetalimage
+package ironcoreimage
 
 import (
-	"github.com/onmetal/onmetal-image/cmd/build"
-	"github.com/onmetal/onmetal-image/cmd/common"
-	"github.com/onmetal/onmetal-image/cmd/delete"
-	"github.com/onmetal/onmetal-image/cmd/inspect"
-	"github.com/onmetal/onmetal-image/cmd/list"
-	"github.com/onmetal/onmetal-image/cmd/pull"
-	"github.com/onmetal/onmetal-image/cmd/push"
-	"github.com/onmetal/onmetal-image/cmd/tag"
-	"github.com/onmetal/onmetal-image/cmd/url"
+	"github.com/ironcore-dev/ironcore-image/cmd/build"
+	"github.com/ironcore-dev/ironcore-image/cmd/common"
+	"github.com/ironcore-dev/ironcore-image/cmd/delete"
+	"github.com/ironcore-dev/ironcore-image/cmd/inspect"
+	"github.com/ironcore-dev/ironcore-image/cmd/list"
+	"github.com/ironcore-dev/ironcore-image/cmd/pull"
+	"github.com/ironcore-dev/ironcore-image/cmd/push"
+	"github.com/ironcore-dev/ironcore-image/cmd/tag"
+	"github.com/ironcore-dev/ironcore-image/cmd/url"
 	"github.com/spf13/cobra"
 )
 
@@ -40,8 +40,8 @@ func Command() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "onmetal-image",
-		Short: "Commands to interface with onmetal images.",
+		Use:   "ironcore-image",
+		Short: "Commands to interface with ironcore images.",
 	}
 
 	cmd.AddCommand(

@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,15 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/containerd/containerd/errdefs"
-
 	"github.com/containerd/containerd/content"
-
+	"github.com/containerd/containerd/errdefs"
+	"github.com/containerd/containerd/remotes"
+	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	"oras.land/oras-go/pkg/auth"
 	"oras.land/oras-go/pkg/auth/docker"
-
-	"github.com/containerd/containerd/remotes"
-	ociimage "github.com/onmetal/onmetal-image/oci/image"
 )
 
 type Registry struct {

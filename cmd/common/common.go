@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/onmetal/onmetal-image/oci/descriptormatcher"
-
-	"github.com/onmetal/onmetal-image/docker"
-
 	"github.com/distribution/reference"
-
-	"github.com/onmetal/onmetal-image/oci/remote"
-
-	"github.com/onmetal/onmetal-image/oci/store"
+	"github.com/ironcore-dev/ironcore-image/docker"
+	"github.com/ironcore-dev/ironcore-image/oci/descriptormatcher"
+	"github.com/ironcore-dev/ironcore-image/oci/remote"
+	"github.com/ironcore-dev/ironcore-image/oci/store"
 )
 
 const (
@@ -49,7 +45,7 @@ var (
 
 func init() {
 	if homeDir, err := os.UserHomeDir(); err == nil {
-		DefaultStorePath = filepath.Join(homeDir, ".onmetal")
+		DefaultStorePath = filepath.Join(homeDir, ".ironcore")
 	}
 }
 
