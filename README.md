@@ -1,5 +1,7 @@
 # ironcore-image
 
+[![REUSE status](https://api.reuse.software/badge/github.com/ironcore-dev/ironcore-image)](https://api.reuse.software/info/github.com/ironcore-dev/ironcore-image)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ironcore-dev/ironcore-image)](https://goreportcard.com/report/github.com/ironcore-dev/ironcore-image)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ironcore-dev/ironcore-image.svg)](https://pkg.go.dev/github.com/ironcore-dev/ironcore-image)
 [![GitHub License](https://img.shields.io/static/v1?label=License&message=Apache-2.0&color=blue)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
