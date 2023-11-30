@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onmetalimage
+package ironcoreimage
 
 import (
 	"context"
@@ -20,14 +20,14 @@ import (
 	"fmt"
 
 	"github.com/containerd/containerd/remotes"
-	"github.com/onmetal/onmetal-image/oci/image"
+	"github.com/ironcore-dev/ironcore-image/oci/image"
 )
 
 const (
-	ConfigMediaType         = "application/vnd.onmetal.image.config.v1alpha1+json"
-	RootFSLayerMediaType    = "application/vnd.onmetal.image.rootfs.v1alpha1.rootfs"
-	InitRAMFSLayerMediaType = "application/vnd.onmetal.image.initramfs.v1alpha1.initramfs"
-	KernelLayerMediaType    = "application/vnd.onmetal.image.vmlinuz.v1alpha1.vmlinuz"
+	ConfigMediaType         = "application/vnd.ironcore.image.config.v1alpha1+json"
+	RootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs.v1alpha1.rootfs"
+	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs.v1alpha1.initramfs"
+	KernelLayerMediaType    = "application/vnd.ironcore.image.vmlinuz.v1alpha1.vmlinuz"
 )
 
 type Config struct {
@@ -54,7 +54,7 @@ func readImageConfig(ctx context.Context, img image.Image) (*Config, error) {
 	return config, nil
 }
 
-// SetupContext sets up context.Context to not log warnings on onmetal media types.
+// SetupContext sets up context.Context to not log warnings on ironcore media types.
 func SetupContext(ctx context.Context) context.Context {
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, ConfigMediaType, "config-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, RootFSLayerMediaType, "layer-")
@@ -63,7 +63,7 @@ func SetupContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-// ResolveImage resolves an oci image to an onmetal Image.
+// ResolveImage resolves an oci image to an ironcore Image.
 func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 	ctx = SetupContext(ctx)
 
@@ -107,7 +107,7 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 	return &img, nil
 }
 
-// Image is an onmetal image.
+// Image is an ironcore image.
 type Image struct {
 	// Config holds additional configuration for a machine / machine pool using the image.
 	Config Config

@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/containerd/containerd/remotes/docker"
-
 	"github.com/containerd/containerd/remotes"
-
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
+	"github.com/containerd/containerd/remotes/docker"
 	"github.com/distribution/reference"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	dockerauth "oras.land/oras-go/pkg/auth/docker"
 )
 

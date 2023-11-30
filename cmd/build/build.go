@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/onmetal/onmetal-image/cmd/common"
-
-	onmetalimage "github.com/onmetal/onmetal-image"
-
-	"github.com/onmetal/onmetal-image/oci/imageutil"
+	ironcoreimage "github.com/ironcore-dev/ironcore-image"
+	"github.com/ironcore-dev/ironcore-image/cmd/common"
+	"github.com/ironcore-dev/ironcore-image/oci/imageutil"
 	"github.com/spf13/cobra"
 )
 
@@ -65,12 +63,12 @@ func Run(
 
 	img, err :=
 		imageutil.NewJSONConfigBuilder(
-			&onmetalimage.Config{CommandLine: commandLine},
-			imageutil.WithMediaType(onmetalimage.ConfigMediaType),
+			&ironcoreimage.Config{CommandLine: commandLine},
+			imageutil.WithMediaType(ironcoreimage.ConfigMediaType),
 		).
-			FileLayer(rootFSPath, imageutil.WithMediaType(onmetalimage.RootFSLayerMediaType)).
-			FileLayer(initRAMFSPath, imageutil.WithMediaType(onmetalimage.InitRAMFSLayerMediaType)).
-			FileLayer(kernelPath, imageutil.WithMediaType(onmetalimage.KernelLayerMediaType)).
+			FileLayer(rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType)).
+			FileLayer(initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType)).
+			FileLayer(kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType)).
 			Complete()
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)

@@ -1,4 +1,4 @@
-// Copyright 2021 OnMetal authors
+// Copyright 2021 IronCore authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import (
 	"fmt"
 	"os"
 
-	onmetalimage "github.com/onmetal/onmetal-image"
-	ociimage "github.com/onmetal/onmetal-image/oci/image"
+	ironcoreimage "github.com/ironcore-dev/ironcore-image"
+	"github.com/ironcore-dev/ironcore-image/cmd/common"
+	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
-	"github.com/onmetal/onmetal-image/cmd/common"
-
 	"github.com/spf13/cobra"
 )
 
@@ -45,12 +43,12 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 }
 
 type Output struct {
-	Descriptor ocispec.Descriptor  `json:"descriptor"`
-	Manifest   ocispec.Manifest    `json:"manifest"`
-	Config     onmetalimage.Config `json:"config"`
+	Descriptor ocispec.Descriptor   `json:"descriptor"`
+	Manifest   ocispec.Manifest     `json:"manifest"`
+	Config     ironcoreimage.Config `json:"config"`
 }
 
-func readImageConfig(ctx context.Context, img ociimage.Image) (*onmetalimage.Config, error) {
+func readImageConfig(ctx context.Context, img ociimage.Image) (*ironcoreimage.Config, error) {
 	configLayer, err := img.Config(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting config layer: %w", err)
@@ -62,7 +60,7 @@ func readImageConfig(ctx context.Context, img ociimage.Image) (*onmetalimage.Con
 	}
 	defer func() { _ = rc.Close() }()
 
-	config := &onmetalimage.Config{}
+	config := &ironcoreimage.Config{}
 	if err := json.NewDecoder(rc).Decode(config); err != nil {
 		return nil, fmt.Errorf("error decoding config: %w", err)
 	}

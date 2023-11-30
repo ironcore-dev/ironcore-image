@@ -1,6 +1,6 @@
-module github.com/onmetal/onmetal-image
+module github.com/ironcore-dev/ironcore-image
 
-go 1.20
+go 1.21
 
 require (
 	github.com/containerd/containerd v1.7.10
