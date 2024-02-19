@@ -10,7 +10,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.1
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc6
+	github.com/opencontainers/image-spec v1.1.0
 	github.com/spf13/cobra v1.8.0
 	go.uber.org/zap v1.26.0
 	oras.land/oras-go v1.2.5
