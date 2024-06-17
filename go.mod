@@ -5,7 +5,7 @@ go 1.22.1
 require (
 	github.com/containerd/containerd v1.7.17
 	github.com/distribution/reference v0.6.0
-	github.com/go-logr/logr v1.4.1
+	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/onsi/ginkgo/v2 v2.17.3
 	github.com/onsi/gomega v1.33.1
