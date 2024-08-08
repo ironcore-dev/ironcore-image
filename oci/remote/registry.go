@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/containerd/containerd/content"
-	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/remotes"
+	"github.com/containerd/errdefs"
 	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	"oras.land/oras-go/pkg/auth"
 	"oras.land/oras-go/pkg/auth/docker"

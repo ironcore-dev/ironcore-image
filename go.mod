@@ -4,6 +4,7 @@ go 1.22.6
 
 require (
 	github.com/containerd/containerd v1.7.20
+	github.com/containerd/errdefs v0.1.0
 	github.com/distribution/reference v0.6.0
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
@@ -20,7 +21,6 @@ require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/docker/cli v27.1.0+incompatible // indirect
