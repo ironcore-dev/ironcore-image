@@ -1,6 +1,6 @@
 module github.com/ironcore-dev/ironcore-image
 
-go 1.22.1
+go 1.22.6
 
 require (
 	github.com/containerd/containerd v1.7.18
