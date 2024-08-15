@@ -17,11 +17,11 @@ var _ = Describe("Image", func() {
 	var (
 		ctx context.Context
 
-		config                                Config
-		kernelData, initramfsData, rootfsData []byte
+		config                                              Config
+		kernelData, initramfsData, rootfsData, squashfsData []byte
 
-		configLayer, kernelLayer, initramfsLayer, rootfsLayer image.Layer
-		img                                                   image.Image
+		configLayer, kernelLayer, initramfsLayer, rootfsLayer, squashfsLayer image.Layer
+		img                                                                  image.Image
 	)
 
 	BeforeEach(func() {
@@ -33,6 +33,7 @@ var _ = Describe("Image", func() {
 		kernelData = []byte("kernel")
 		initramfsData = []byte("initramfs")
 		rootfsData = []byte("rootfs")
+		squashfsData = []byte("squashfs")
 
 		c, err := imageutil.JSONValueLayer(config, imageutil.WithMediaType(ConfigMediaType))
 		Expect(err).NotTo(HaveOccurred())
@@ -40,9 +41,10 @@ var _ = Describe("Image", func() {
 		kernelLayer = imageutil.BytesLayer(kernelData, imageutil.WithMediaType(KernelLayerMediaType))
 		initramfsLayer = imageutil.BytesLayer(initramfsData, imageutil.WithMediaType(InitRAMFSLayerMediaType))
 		rootfsLayer = imageutil.BytesLayer(rootfsData, imageutil.WithMediaType(RootFSLayerMediaType))
+		squashfsLayer = imageutil.BytesLayer(squashfsData, imageutil.WithMediaType(SquashFSLayerMediaType))
 
 		i, err := imageutil.NewBuilder(configLayer).
-			Layers(kernelLayer, initramfsLayer, rootfsLayer).
+			Layers(kernelLayer, initramfsLayer, rootfsLayer, squashfsLayer).
 			Complete()
 		Expect(err).NotTo(HaveOccurred())
 		img = i
@@ -61,6 +63,7 @@ var _ = Describe("Image", func() {
 			Expect(imageutil.ReadLayerContent(ctx, res.Kernel)).To(Equal(kernelData))
 			Expect(imageutil.ReadLayerContent(ctx, res.RootFS)).To(Equal(rootfsData))
 			Expect(imageutil.ReadLayerContent(ctx, res.InitRAMFs)).To(Equal(initramfsData))
+			Expect(imageutil.ReadLayerContent(ctx, res.SquashFS)).To(Equal(squashfsData))
 		})
 
 		It("should error if the image contains invalid layers", func() {

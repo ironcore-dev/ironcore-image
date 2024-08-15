@@ -17,6 +17,7 @@ const (
 	RootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs.v1alpha1.rootfs"
 	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs.v1alpha1.initramfs"
 	KernelLayerMediaType    = "application/vnd.ironcore.image.vmlinuz.v1alpha1.vmlinuz"
+	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs.v1alpha1.squashfs"
 )
 
 type Config struct {
@@ -49,6 +50,7 @@ func SetupContext(ctx context.Context) context.Context {
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, RootFSLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, InitRAMFSLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, KernelLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, SquashFSLayerMediaType, "layer-")
 	return ctx
 }
 
@@ -75,6 +77,8 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			img.Kernel = layer
 		case RootFSLayerMediaType:
 			img.RootFS = layer
+		case SquashFSLayerMediaType:
+			img.SquashFS = layer
 		default:
 			return nil, fmt.Errorf("unknown layer type %q", layer.Descriptor().MediaType)
 		}
@@ -102,6 +106,8 @@ type Image struct {
 	Config Config
 	// RootFS is the layer containing the root file system.
 	RootFS image.Layer
+	// SquashFS is the layer containing the root file system.
+	SquashFS image.Layer
 	// InitRAMFs is the layer containing the initramfs / initrd.
 	InitRAMFs image.Layer
 	// Kernel is the layer containing the kernel.
