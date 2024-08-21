@@ -17,6 +17,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 	var (
 		tagName       string
 		rootFSPath    string
+		squashFSPath  string
 		initRAMFSPath string
 		kernelPath    string
 		commandLine   string
@@ -27,12 +28,13 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, rootFSPath, initRAMFSPath, kernelPath, commandLine)
+			return Run(ctx, storeFactory, tagName, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine)
 		},
 	}
 
 	cmd.Flags().StringVar(&tagName, "tag", "", "Optional tag of image.")
 	cmd.Flags().StringVar(&rootFSPath, "rootfs-file", "", "Path pointing to a root fs file.")
+	cmd.Flags().StringVar(&squashFSPath, "squashfs-file", "", "Path pointing to a squash fs file.")
 	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path pointing to an initram fs file.")
 	cmd.Flags().StringVar(&kernelPath, "kernel-file", "", "Path pointing to a kernel file (usually ending with 'vmlinuz').")
 	cmd.Flags().StringVar(&commandLine, "command-line", "", "Command line arguments to supply to the kernel.")
@@ -43,7 +45,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 func Run(
 	ctx context.Context,
 	storeFactory common.StoreFactory,
-	ref, rootFSPath, initRAMFSPath, kernelPath, commandLine string,
+	ref, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine string,
 ) error {
 	s, err := storeFactory()
 	if err != nil {
@@ -58,6 +60,7 @@ func Run(
 			FileLayer(rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType)).
 			FileLayer(initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType)).
 			FileLayer(kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType)).
+			FileLayer(squashFSPath, imageutil.WithMediaType(ironcoreimage.SquashFSLayerMediaType)).
 			Complete()
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
