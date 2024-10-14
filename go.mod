@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/containerd/containerd v1.7.22
-	github.com/containerd/errdefs v0.2.0
+	github.com/containerd/errdefs v0.3.0
 	github.com/distribution/reference v0.6.0
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
