@@ -31,7 +31,7 @@ To install the command tool, make sure you have a working go installation
 and `GOBIN` set up correctly. Then simply run
 
 ```shell
-make install
+make build
 ```
 
 This will install the tool available under `$GOBIN/ironcore-image`.
