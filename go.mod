@@ -3,7 +3,7 @@ module github.com/ironcore-dev/ironcore-image
 go 1.23.0
 
 require (
-	github.com/containerd/containerd v1.7.23
+	github.com/containerd/containerd v1.7.24
 	github.com/containerd/errdefs v1.0.0
 	github.com/distribution/reference v0.6.0
 	github.com/go-logr/logr v1.4.2
