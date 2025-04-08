@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	ConfigMediaType         = "application/vnd.ironcore.image.config.v1alpha1+json"
-	RootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs.v1alpha1.rootfs"
-	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs.v1alpha1.initramfs"
-	KernelLayerMediaType    = "application/vnd.ironcore.image.vmlinuz.v1alpha1.vmlinuz"
-	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs.v1alpha1.squashfs"
+	ConfigMediaType         = "application/vnd.ironcore.osboot.config.v1+json"
+	RootFSLayerMediaType    = "application/vnd.ironcore.osboot.rootfs"
+	InitRAMFSLayerMediaType = "application/vnd.ironcore.osboot.initramfs"
+	KernelLayerMediaType    = "application/vnd.ironcore.osboot.kernel"
+	SquashFSLayerMediaType  = "application/vnd.ironcore.osboot.squashfs"
 )
 
 type Config struct {

@@ -13,6 +13,7 @@ path = [
     "go.mod",
     "go.sum",
     "hack/**",
+    "OCI-SPEC.md",
     "REUSE.toml"
 ]
 precedence = "aggregate"

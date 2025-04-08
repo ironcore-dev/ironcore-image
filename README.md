@@ -105,6 +105,14 @@ To pull the pushed image, run
 ironcore-image pull ghcr.io/ironcore-dev/ironcore-image/my-image:latest
 ```
 
+## OCI Specification
+
+This project also defines and publishes the OCI image specification that operating systems must conform to in order to be compatible with the IronCore ecosystem.
+
+Following this specification ensures that OS images can be used to boot bare-metal machines via the [metal automation](https://github.com/ironcore-dev/metal-operator) layer and can also be used in virtualized environments within the IronCore virtualization stack.
+
+See the full [OCI image layout specification](OCI-SPEC.md) for details on how to package your OS images for IronCore.
+
 ## Contributing
 
 We'd love to get feedback from you. Please report bugs, suggestions or post questions by opening a GitHub issue.
