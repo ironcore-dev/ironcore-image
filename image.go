@@ -18,7 +18,6 @@ const (
 	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs"
 	KernelLayerMediaType    = "application/vnd.ironcore.image.kernel"
 	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs"
-	CmdlineLayerMediaType   = "application/vnd.ironcore.image.cmdline"
 	UKILayerMediaType       = "application/vnd.ironcore.image.uki"
 	ISOLayerMediaType       = "application/vnd.ironcore.image.iso"
 )
@@ -54,7 +53,6 @@ func SetupContext(ctx context.Context) context.Context {
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, InitRAMFSLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, KernelLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, SquashFSLayerMediaType, "layer-")
-	ctx = remotes.WithMediaTypeKeyPrefix(ctx, CmdlineLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, UKILayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, ISOLayerMediaType, "layer-")
 	return ctx
@@ -85,8 +83,6 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			img.RootFS = layer
 		case SquashFSLayerMediaType:
 			img.SquashFS = layer
-		case CmdlineLayerMediaType:
-			img.Cmdline = layer
 		case UKILayerMediaType:
 			img.UKI = layer
 		case ISOLayerMediaType:
@@ -124,8 +120,6 @@ type Image struct {
 	InitRAMFs image.Layer
 	// Kernel is the layer containing the kernel.
 	Kernel image.Layer
-	// Cmdline is a layer containing a kernel command line override.
-	Cmdline image.Layer
 	// UKI is a Unified Kernel Image layer.
 	UKI image.Layer
 	// ISO is a layer containing a bootable ISO image.
