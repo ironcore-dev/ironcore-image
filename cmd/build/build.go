@@ -20,6 +20,8 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		squashFSPath  string
 		initRAMFSPath string
 		kernelPath    string
+		ukiPath       string
+		isoPath       string
 		commandLine   string
 	)
 
@@ -28,7 +30,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine)
+			return Run(ctx, storeFactory, tagName, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine, ukiPath, isoPath)
 		},
 	}
 
@@ -38,6 +40,8 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path pointing to an initram fs file.")
 	cmd.Flags().StringVar(&kernelPath, "kernel-file", "", "Path pointing to a kernel file (usually ending with 'vmlinuz').")
 	cmd.Flags().StringVar(&commandLine, "command-line", "", "Command line arguments to supply to the kernel.")
+	cmd.Flags().StringVar(&ukiPath, "uki-file", "", "Optional path to a Unified Kernel Image (UKI) file.")
+	cmd.Flags().StringVar(&isoPath, "iso-file", "", "Optional path to a bootable ISO image file.")
 
 	return cmd
 }
@@ -45,23 +49,38 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 func Run(
 	ctx context.Context,
 	storeFactory common.StoreFactory,
-	ref, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine string,
+	ref, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, commandLine, ukiPath, isoPath string,
 ) error {
 	s, err := storeFactory()
 	if err != nil {
 		return fmt.Errorf("could not create store: %w", err)
 	}
 
-	img, err :=
-		imageutil.NewJSONConfigBuilder(
-			&ironcoreimage.Config{CommandLine: commandLine},
-			imageutil.WithMediaType(ironcoreimage.ConfigMediaType),
-		).
-			FileLayer(rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType)).
-			FileLayer(initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType)).
-			FileLayer(kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType)).
-			FileLayer(squashFSPath, imageutil.WithMediaType(ironcoreimage.SquashFSLayerMediaType)).
-			Complete()
+	builder := imageutil.NewJSONConfigBuilder(
+		&ironcoreimage.Config{CommandLine: commandLine},
+		imageutil.WithMediaType(ironcoreimage.ConfigMediaType),
+	)
+
+	if rootFSPath != "" {
+		builder = builder.FileLayer(rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType))
+	}
+	if initRAMFSPath != "" {
+		builder = builder.FileLayer(initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType))
+	}
+	if kernelPath != "" {
+		builder = builder.FileLayer(kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType))
+	}
+	if squashFSPath != "" {
+		builder = builder.FileLayer(squashFSPath, imageutil.WithMediaType(ironcoreimage.SquashFSLayerMediaType))
+	}
+	if ukiPath != "" {
+		builder = builder.FileLayer(ukiPath, imageutil.WithMediaType(ironcoreimage.UKILayerMediaType))
+	}
+	if isoPath != "" {
+		builder = builder.FileLayer(isoPath, imageutil.WithMediaType(ironcoreimage.ISOLayerMediaType))
+	}
+
+	img, err := builder.Complete()
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
 	}

@@ -13,11 +13,13 @@ import (
 )
 
 const (
-	ConfigMediaType         = "application/vnd.ironcore.image.config.v1alpha1+json"
-	RootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs.v1alpha1.rootfs"
-	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs.v1alpha1.initramfs"
-	KernelLayerMediaType    = "application/vnd.ironcore.image.vmlinuz.v1alpha1.vmlinuz"
-	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs.v1alpha1.squashfs"
+	ConfigMediaType         = "application/vnd.ironcore.image.config.v1+json"
+	RootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs"
+	InitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs"
+	KernelLayerMediaType    = "application/vnd.ironcore.image.kernel"
+	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs"
+	UKILayerMediaType       = "application/vnd.ironcore.image.uki"
+	ISOLayerMediaType       = "application/vnd.ironcore.image.iso"
 )
 
 type Config struct {
@@ -51,6 +53,8 @@ func SetupContext(ctx context.Context) context.Context {
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, InitRAMFSLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, KernelLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, SquashFSLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, UKILayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, ISOLayerMediaType, "layer-")
 	return ctx
 }
 
@@ -79,6 +83,10 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			img.RootFS = layer
 		case SquashFSLayerMediaType:
 			img.SquashFS = layer
+		case UKILayerMediaType:
+			img.UKI = layer
+		case ISOLayerMediaType:
+			img.ISO = layer
 		default:
 			return nil, fmt.Errorf("unknown layer type %q", layer.Descriptor().MediaType)
 		}
@@ -112,4 +120,8 @@ type Image struct {
 	InitRAMFs image.Layer
 	// Kernel is the layer containing the kernel.
 	Kernel image.Layer
+	// UKI is a Unified Kernel Image layer.
+	UKI image.Layer
+	// ISO is a layer containing a bootable ISO image.
+	ISO image.Layer
 }
