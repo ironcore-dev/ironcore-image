@@ -127,10 +127,6 @@ func Image(provider content.Provider, desc ocispec.Descriptor) ociimage.Image {
 }
 
 func IndexImage(provider content.Provider, desc ocispec.Descriptor) ociimage.Image {
-	//return &indexImage{
-	//	provider:   provider,
-	//	descriptor: desc,
-	//}
 	return &indexImage{layer{provider, desc}}
 }
 

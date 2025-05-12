@@ -161,11 +161,11 @@ func NewIndexImage(index ocispec.Index) (image.Image, error) {
 		Size:      int64(len(data)),
 	}
 
-	//dummyConfig := BytesLayer([]byte("{}"), WithMediaType("application/vnd.unknown.config.v1+json"))
-
+	emptyConfig := BytesLayer([]byte("{}"), WithMediaType("application/vnd.oci.image.config.v1+json"))
 	return &indexImage{
 		descriptor: desc,
 		index:      index,
+		config:     emptyConfig,
 		layers:     nil,
 	}, nil
 }
@@ -173,6 +173,7 @@ func NewIndexImage(index ocispec.Index) (image.Image, error) {
 type indexImage struct {
 	descriptor ocispec.Descriptor
 	index      ocispec.Index
+	config     image.Layer
 	layers     []image.Layer
 }
 
@@ -198,7 +199,7 @@ func (i *indexImage) Index(ctx context.Context) (ocispec.Index, error) {
 }
 
 func (i *indexImage) Config(ctx context.Context) (image.Layer, error) {
-	return nil, fmt.Errorf("indexImage has no config")
+	return i.config, nil
 }
 
 func (i *indexImage) Layers(ctx context.Context) ([]image.Layer, error) {
