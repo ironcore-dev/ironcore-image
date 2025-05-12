@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ironcore-dev/ironcore-image/oci/indexer"
+
 	"github.com/distribution/reference"
 	"github.com/ironcore-dev/ironcore-image/oci/descriptormatcher"
 	"github.com/ironcore-dev/ironcore-image/oci/image"
@@ -15,7 +17,8 @@ import (
 )
 
 type Store struct {
-	layout *layout.Layout
+	layout  *layout.Layout
+	indexer *indexer.Indexer
 }
 
 func (s *Store) Put(ctx context.Context, img image.Image) error {
@@ -31,6 +34,17 @@ func (s *Store) Push(ctx context.Context, ref string, img image.Image) error {
 		return fmt.Errorf("error putting image: %w", err)
 	}
 	if err := s.Tag(ctx, img.Descriptor().Digest.String(), ref); err != nil {
+		return fmt.Errorf("error tagging image with ref %s: %w", ref, err)
+	}
+	return nil
+}
+
+func (s *Store) PushIndexManifest(ctx context.Context, indexImage image.Image, indexManifest *ocispec.Index, ref string) error {
+	if err := s.layout.AddIndexManifest(ctx, indexManifest); err != nil {
+		return fmt.Errorf("error adding index manifest: %w", err)
+	}
+
+	if err := s.Tag(ctx, indexImage.Descriptor().Digest.String(), ref); err != nil {
 		return fmt.Errorf("error tagging image with ref %s: %w", ref, err)
 	}
 	return nil
@@ -93,7 +107,14 @@ func (s *Store) Resolve(ctx context.Context, ref string) (image.Image, error) {
 		return nil, err
 	}
 
-	return s.layout.Image(ctx, desc)
+	switch desc.MediaType {
+	case ocispec.MediaTypeImageManifest:
+		return s.layout.Image(ctx, desc)
+	case ocispec.MediaTypeImageIndex:
+		return s.layout.IndexImage(ctx, desc)
+	default:
+		return nil, fmt.Errorf("unsupported media type: %s", desc.MediaType)
+	}
 }
 
 func (s *Store) Tag(ctx context.Context, srcRef, dstRef string) error {

@@ -103,7 +103,9 @@ func (b *Builder) Complete(opts ...DescriptorOpt) (image.Image, error) {
 	for _, opt := range opts {
 		opt(&desc)
 	}
-	desc.MediaType = ocispec.MediaTypeImageManifest
+	if desc.MediaType == "" {
+		desc.MediaType = ocispec.MediaTypeImageManifest
+	}
 	desc.Digest = digest.FromBytes(data)
 	desc.Size = int64(len(data))
 
@@ -159,13 +161,11 @@ func NewIndexImage(index ocispec.Index) (image.Image, error) {
 		Size:      int64(len(data)),
 	}
 
-	dummyConfig := BytesLayer([]byte{}, WithMediaType("application/vnd.unknown.config.v1+json"))
+	//dummyConfig := BytesLayer([]byte("{}"), WithMediaType("application/vnd.unknown.config.v1+json"))
 
 	return &indexImage{
 		descriptor: desc,
 		index:      index,
-		config:     dummyConfig,
-		manifest:   ocispec.Manifest{},
 		layers:     nil,
 	}, nil
 }
@@ -173,8 +173,6 @@ func NewIndexImage(index ocispec.Index) (image.Image, error) {
 type indexImage struct {
 	descriptor ocispec.Descriptor
 	index      ocispec.Index
-	config     image.Layer
-	manifest   ocispec.Manifest
 	layers     []image.Layer
 }
 
@@ -192,11 +190,15 @@ func (i *indexImage) Content(ctx context.Context) (io.ReadCloser, error) {
 }
 
 func (i *indexImage) Manifest(ctx context.Context) (*ocispec.Manifest, error) {
-	return &i.manifest, nil
+	return nil, fmt.Errorf("indexImage has no manifest")
+}
+
+func (i *indexImage) Index(ctx context.Context) (ocispec.Index, error) {
+	return i.index, nil
 }
 
 func (i *indexImage) Config(ctx context.Context) (image.Layer, error) {
-	return i.config, nil
+	return nil, fmt.Errorf("indexImage has no config")
 }
 
 func (i *indexImage) Layers(ctx context.Context) ([]image.Layer, error) {

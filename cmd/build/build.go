@@ -7,9 +7,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/opencontainers/image-spec/specs-go"
+
 	ironcoreimage "github.com/ironcore-dev/ironcore-image"
 	"github.com/ironcore-dev/ironcore-image/oci/imageutil"
-	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/ironcore-dev/ironcore-image/cmd/common"
@@ -86,7 +87,7 @@ func Run(
 	}
 
 	if multiArch {
-		// Validate input
+		// TODO: Fix this with a better solution
 		if rootFSPathAMD64 == "" || kernelPathAMD64 == "" || rootFSPathARM64 == "" || kernelPathARM64 == "" {
 			return fmt.Errorf("multi-arch build requires all amd64 and arm64 paths to be provided")
 		}
@@ -111,7 +112,7 @@ func Run(
 			return fmt.Errorf("error pushing arm64 image: %w", err)
 		}
 
-		fmt.Println("Successfully pushed AMD64 and ARM64 images.")
+		fmt.Println("Successfully built AMD64 and ARM64 images.")
 
 		// Build index manifest
 		index := ocispec.Index{
@@ -125,18 +126,16 @@ func Run(
 			},
 		}
 
-		// Wrap index into an image.Image so it can be pushed
 		indexImage, err := imageutil.NewIndexImage(index)
 		if err != nil {
 			return fmt.Errorf("error creating index image: %w", err)
 		}
 
-		// Push index
-		if err := s.Push(ctx, tagName, indexImage); err != nil {
-			return fmt.Errorf("error pushing index image: %w", err)
+		if err := s.PushIndexManifest(ctx, indexImage, &index, tagName); err != nil {
+			return fmt.Errorf("error pushing index manifest: %w", err)
 		}
 
-		fmt.Println("Successfully built and pushed multi-arch index:", tagName)
+		fmt.Println("Successfully built multi-arch index:", tagName)
 		return nil
 	}
 
