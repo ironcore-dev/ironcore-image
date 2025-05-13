@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ironcore-dev/ironcore-image/oci/indexer"
-
 	"github.com/distribution/reference"
 	"github.com/ironcore-dev/ironcore-image/oci/descriptormatcher"
 	"github.com/ironcore-dev/ironcore-image/oci/image"
@@ -17,8 +15,7 @@ import (
 )
 
 type Store struct {
-	layout  *layout.Layout
-	indexer *indexer.Indexer
+	layout *layout.Layout
 }
 
 func (s *Store) Put(ctx context.Context, img image.Image) error {

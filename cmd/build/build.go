@@ -87,19 +87,14 @@ func Run(
 	}
 
 	if multiArch {
-		// TODO: Fix this with a better solution
-		if rootFSPathAMD64 == "" || kernelPathAMD64 == "" || rootFSPathARM64 == "" || kernelPathARM64 == "" {
-			return fmt.Errorf("multi-arch build requires all amd64 and arm64 paths to be provided")
-		}
-
 		// Build AMD64 image
-		amd64Img, err := buildImage(ctx, rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64, "amd64")
+		amd64Img, err := buildImage(ctx, rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64)
 		if err != nil {
 			return fmt.Errorf("error building amd64 image: %w", err)
 		}
 
 		// Build ARM64 image
-		arm64Img, err := buildImage(ctx, rootFSPathARM64, squashFSPathARM64, initRAMFSPathARM64, kernelPathARM64, ukiPathARM64, isoPathARM64, "arm64")
+		arm64Img, err := buildImage(ctx, rootFSPathARM64, squashFSPathARM64, initRAMFSPathARM64, kernelPathARM64, ukiPathARM64, isoPathARM64)
 		if err != nil {
 			return fmt.Errorf("error building arm64 image: %w", err)
 		}
@@ -161,7 +156,7 @@ func Run(
 		return fmt.Errorf("unsupported architecture: %s", arch)
 	}
 
-	img, err := buildImage(ctx, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath, arch)
+	img, err := buildImage(ctx, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath)
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
 	}
@@ -183,8 +178,8 @@ func withPlatform(desc ocispec.Descriptor, arch, os string) ocispec.Descriptor {
 }
 
 func buildImage(
-	ctx context.Context,
-	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath, arch string,
+	_ context.Context,
+	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath string,
 ) (image.Image, error) {
 	builder := imageutil.NewJSONConfigBuilder(
 		&ironcoreimage.Config{},
