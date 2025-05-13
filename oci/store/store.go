@@ -36,6 +36,17 @@ func (s *Store) Push(ctx context.Context, ref string, img image.Image) error {
 	return nil
 }
 
+func (s *Store) PushIndexManifest(ctx context.Context, indexImage image.Image, indexManifest *ocispec.Index, ref string) error {
+	if err := s.layout.AddIndexManifest(ctx, indexManifest); err != nil {
+		return fmt.Errorf("error adding index manifest: %w", err)
+	}
+
+	if err := s.Tag(ctx, indexImage.Descriptor().Digest.String(), ref); err != nil {
+		return fmt.Errorf("error tagging image with ref %s: %w", ref, err)
+	}
+	return nil
+}
+
 func (s *Store) referenceToMatcher(ref string) (descriptormatcher.Matcher, error) {
 	r, err := reference.ParseAnyReference(ref)
 	if err != nil {
@@ -93,7 +104,14 @@ func (s *Store) Resolve(ctx context.Context, ref string) (image.Image, error) {
 		return nil, err
 	}
 
-	return s.layout.Image(ctx, desc)
+	switch desc.MediaType {
+	case ocispec.MediaTypeImageManifest:
+		return s.layout.Image(ctx, desc)
+	case ocispec.MediaTypeImageIndex:
+		return s.layout.IndexImage(ctx, desc)
+	default:
+		return nil, fmt.Errorf("unsupported media type: %s", desc.MediaType)
+	}
 }
 
 func (s *Store) Tag(ctx context.Context, srcRef, dstRef string) error {
