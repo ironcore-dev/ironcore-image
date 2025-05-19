@@ -6,6 +6,7 @@ package build
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/opencontainers/image-spec/specs-go"
@@ -13,17 +14,30 @@ import (
 	ironcoreimage "github.com/ironcore-dev/ironcore-image"
 	"github.com/ironcore-dev/ironcore-image/oci/imageutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"gopkg.in/yaml.v2"
 
 	"github.com/ironcore-dev/ironcore-image/cmd/common"
 	"github.com/ironcore-dev/ironcore-image/oci/image"
 	"github.com/spf13/cobra"
 )
 
+type Config struct {
+	Architectures map[string]struct {
+		RootFS    string `yaml:"rootfs"`
+		Kernel    string `yaml:"kernel"`
+		SquashFS  string `yaml:"squashfs,omitempty"`
+		InitRAMFS string `yaml:"initramfs,omitempty"`
+		UKI       string `yaml:"uki,omitempty"`
+		ISO       string `yaml:"iso,omitempty"`
+	} `yaml:"architectures"`
+}
+
 func Command(storeFactory common.StoreFactory) *cobra.Command {
 	var (
 		tagName string
 
-		multiArch bool
+		multiArch  bool
+		configPath string
 
 		rootFSPath    string
 		squashFSPath  string
@@ -38,14 +52,14 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, multiArch,
+			return Run(ctx, storeFactory, tagName, multiArch, configPath,
 				rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath)
 		},
 	}
 
+	cmd.Flags().StringVar(&configPath, "config", "", "Path to the YAML configuration file")
 	cmd.Flags().StringVar(&tagName, "tag", "", "Optional tag of image.")
 	cmd.Flags().BoolVar(&multiArch, "multi-arch", false, "Enable multi-architecture (amd64 + arm64) image build.")
-
 	cmd.Flags().StringVar(&rootFSPath, "rootfs-file", "", "Path to root fs file.")
 	cmd.Flags().StringVar(&squashFSPath, "squashfs-file", "", "Path to squash fs file.")
 	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path to initramfs file.")
@@ -61,6 +75,7 @@ func Run(
 	storeFactory common.StoreFactory,
 	tagName string,
 	multiArch bool,
+	configPath string,
 	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath string,
 ) error {
 	var rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64 string
@@ -71,46 +86,80 @@ func Run(
 	}
 
 	if multiArch {
-
-		if rootFSPath != "" {
-			rootFSPathAMD64, rootFSPathARM64, err = parseMultiArchPaths(strings.Split(rootFSPath, ","), "rootfs-file")
+		if configPath != "" {
+			file, err := os.Open(configPath)
 			if err != nil {
-				return err
+				return fmt.Errorf("error opening config file: %w", err)
 			}
-		}
+			defer func() {
+				if cerr := file.Close(); cerr != nil {
+					fmt.Printf("error closing config file: %v\n", cerr)
+				}
+			}()
 
-		if kernelPath != "" {
-			kernelPathAMD64, kernelPathARM64, err = parseMultiArchPaths(strings.Split(kernelPath, ","), "kernel-file")
-			if err != nil {
-				return err
+			var config Config
+			if err := yaml.NewDecoder(file).Decode(&config); err != nil {
+				return fmt.Errorf("error parsing config file: %w", err)
 			}
-		}
 
-		if squashFSPath != "" {
-			squashFSPathAMD64, squashFSPathARM64, err = parseMultiArchPaths(strings.Split(squashFSPath, ","), "squashfs-file")
-			if err != nil {
-				return err
+			// Populate paths from the config
+			if archConfig, ok := config.Architectures["amd64"]; ok {
+				rootFSPathAMD64 = archConfig.RootFS
+				kernelPathAMD64 = archConfig.Kernel
+				squashFSPathAMD64 = archConfig.SquashFS
+				initRAMFSPathAMD64 = archConfig.InitRAMFS
+				ukiPathAMD64 = archConfig.UKI
+				isoPathAMD64 = archConfig.ISO
 			}
-		}
-
-		if ukiPath != "" {
-			ukiPathAMD64, ukiPathARM64, err = parseMultiArchPaths(strings.Split(ukiPath, ","), "uki-file")
-			if err != nil {
-				return err
+			if archConfig, ok := config.Architectures["arm64"]; ok {
+				rootFSPathARM64 = archConfig.RootFS
+				kernelPathARM64 = archConfig.Kernel
+				squashFSPathARM64 = archConfig.SquashFS
+				initRAMFSPathARM64 = archConfig.InitRAMFS
+				ukiPathARM64 = archConfig.UKI
+				isoPathARM64 = archConfig.ISO
 			}
-		}
-
-		if initRAMFSPath != "" {
-			initRAMFSPathAMD64, initRAMFSPathARM64, err = parseMultiArchPaths(strings.Split(initRAMFSPath, ","), "initramfs-file")
-			if err != nil {
-				return err
+		} else {
+			if rootFSPath != "" {
+				rootFSPathAMD64, rootFSPathARM64, err = parseMultiArchPaths(strings.Split(rootFSPath, ","), "rootfs-file")
+				if err != nil {
+					return err
+				}
 			}
-		}
 
-		if isoPath != "" {
-			isoPathAMD64, isoPathARM64, err = parseMultiArchPaths(strings.Split(isoPath, ","), "iso-file")
-			if err != nil {
-				return err
+			if kernelPath != "" {
+				kernelPathAMD64, kernelPathARM64, err = parseMultiArchPaths(strings.Split(kernelPath, ","), "kernel-file")
+				if err != nil {
+					return err
+				}
+			}
+
+			if squashFSPath != "" {
+				squashFSPathAMD64, squashFSPathARM64, err = parseMultiArchPaths(strings.Split(squashFSPath, ","), "squashfs-file")
+				if err != nil {
+					return err
+				}
+			}
+
+			if ukiPath != "" {
+				ukiPathAMD64, ukiPathARM64, err = parseMultiArchPaths(strings.Split(ukiPath, ","), "uki-file")
+				if err != nil {
+					return err
+				}
+			}
+
+			if initRAMFSPath != "" {
+				initRAMFSPathAMD64, initRAMFSPathARM64, err = parseMultiArchPaths(strings.Split(initRAMFSPath, ","), "initramfs-file")
+				if err != nil {
+					return err
+				}
+			}
+
+			if isoPath != "" {
+				isoPathAMD64, isoPathARM64, err = parseMultiArchPaths(strings.Split(isoPath, ","), "iso-file")
+				if err != nil {
+					return err
+				}
 			}
 		}
 
