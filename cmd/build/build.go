@@ -6,6 +6,7 @@ package build
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/opencontainers/image-spec/specs-go"
 
@@ -22,22 +23,14 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 	var (
 		tagName string
 
-		arch      string
 		multiArch bool
 
-		rootFSPathAMD64    string
-		squashFSPathAMD64  string
-		initRAMFSPathAMD64 string
-		kernelPathAMD64    string
-		ukiPathAMD64       string
-		isoPathAMD64       string
-
-		rootFSPathARM64    string
-		squashFSPathARM64  string
-		initRAMFSPathARM64 string
-		kernelPathARM64    string
-		ukiPathARM64       string
-		isoPathARM64       string
+		rootFSPath    string
+		squashFSPath  string
+		initRAMFSPath string
+		kernelPath    string
+		ukiPath       string
+		isoPath       string
 	)
 
 	cmd := &cobra.Command{
@@ -45,29 +38,20 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, arch, multiArch,
-				rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64,
-				rootFSPathARM64, squashFSPathARM64, initRAMFSPathARM64, kernelPathARM64, ukiPathARM64, isoPathARM64)
+			return Run(ctx, storeFactory, tagName, multiArch,
+				rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath)
 		},
 	}
 
 	cmd.Flags().StringVar(&tagName, "tag", "", "Optional tag of image.")
-	cmd.Flags().StringVar(&arch, "arch", "", "Target architecture (amd64 or arm64). Cannot be used with --multi-arch.")
 	cmd.Flags().BoolVar(&multiArch, "multi-arch", false, "Enable multi-architecture (amd64 + arm64) image build.")
 
-	cmd.Flags().StringVar(&rootFSPathAMD64, "rootfs-file-amd64", "", "Path to AMD64 root fs file.")
-	cmd.Flags().StringVar(&squashFSPathAMD64, "squashfs-file-amd64", "", "Path to AMD64 squash fs file.")
-	cmd.Flags().StringVar(&initRAMFSPathAMD64, "initramfs-file-amd64", "", "Path to AMD64 initramfs file.")
-	cmd.Flags().StringVar(&kernelPathAMD64, "kernel-file-amd64", "", "Path to AMD64 kernel file.")
-	cmd.Flags().StringVar(&ukiPathAMD64, "uki-file-amd64", "", "Path to AMD64 Unified Kernel Image (UKI) file.")
-	cmd.Flags().StringVar(&isoPathAMD64, "iso-file-amd64", "", "Path to AMD64 bootable ISO image file.")
-
-	cmd.Flags().StringVar(&rootFSPathARM64, "rootfs-file-arm64", "", "Path to ARM64 root fs file.")
-	cmd.Flags().StringVar(&squashFSPathARM64, "squashfs-file-arm64", "", "Path to ARM64 squash fs file.")
-	cmd.Flags().StringVar(&initRAMFSPathARM64, "initramfs-file-arm64", "", "Path to ARM64 initramfs file.")
-	cmd.Flags().StringVar(&kernelPathARM64, "kernel-file-arm64", "", "Path to ARM64 kernel file.")
-	cmd.Flags().StringVar(&ukiPathARM64, "uki-file-arm64", "", "Path to ARM64 Unified Kernel Image (UKI) file.")
-	cmd.Flags().StringVar(&isoPathARM64, "iso-file-arm64", "", "Path to ARM64 bootable ISO image file.")
+	cmd.Flags().StringVar(&rootFSPath, "rootfs-file", "", "Path to root fs file.")
+	cmd.Flags().StringVar(&squashFSPath, "squashfs-file", "", "Path to squash fs file.")
+	cmd.Flags().StringVar(&initRAMFSPath, "initramfs-file", "", "Path to initramfs file.")
+	cmd.Flags().StringVar(&kernelPath, "kernel-file", "", "Path to kernel file.")
+	cmd.Flags().StringVar(&ukiPath, "uki-file", "", "Path to Unified Kernel Image (UKI) file.")
+	cmd.Flags().StringVar(&isoPath, "iso-file", "", "Path to bootable ISO image file.")
 
 	return cmd
 }
@@ -76,17 +60,60 @@ func Run(
 	ctx context.Context,
 	storeFactory common.StoreFactory,
 	tagName string,
-	arch string,
 	multiArch bool,
-	rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64 string,
-	rootFSPathARM64, squashFSPathARM64, initRAMFSPathARM64, kernelPathARM64, ukiPathARM64, isoPathARM64 string,
+	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath string,
 ) error {
+	var rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64 string
+	var rootFSPathARM64, squashFSPathARM64, initRAMFSPathARM64, kernelPathARM64, ukiPathARM64, isoPathARM64 string
 	s, err := storeFactory()
 	if err != nil {
 		return fmt.Errorf("could not create store: %w", err)
 	}
 
 	if multiArch {
+
+		if rootFSPath != "" {
+			rootFSPathAMD64, rootFSPathARM64, err = parseMultiArchPaths(strings.Split(rootFSPath, ","), "rootfs-file")
+			if err != nil {
+				return err
+			}
+		}
+
+		if kernelPath != "" {
+			kernelPathAMD64, kernelPathARM64, err = parseMultiArchPaths(strings.Split(kernelPath, ","), "kernel-file")
+			if err != nil {
+				return err
+			}
+		}
+
+		if squashFSPath != "" {
+			squashFSPathAMD64, squashFSPathARM64, err = parseMultiArchPaths(strings.Split(squashFSPath, ","), "squashfs-file")
+			if err != nil {
+				return err
+			}
+		}
+
+		if ukiPath != "" {
+			ukiPathAMD64, ukiPathARM64, err = parseMultiArchPaths(strings.Split(ukiPath, ","), "uki-file")
+			if err != nil {
+				return err
+			}
+		}
+
+		if initRAMFSPath != "" {
+			initRAMFSPathAMD64, initRAMFSPathARM64, err = parseMultiArchPaths(strings.Split(initRAMFSPath, ","), "initramfs-file")
+			if err != nil {
+				return err
+			}
+		}
+
+		if isoPath != "" {
+			isoPathAMD64, isoPathARM64, err = parseMultiArchPaths(strings.Split(isoPath, ","), "iso-file")
+			if err != nil {
+				return err
+			}
+		}
+
 		// Build AMD64 image
 		amd64Img, err := buildImage(ctx, rootFSPathAMD64, squashFSPathAMD64, initRAMFSPathAMD64, kernelPathAMD64, ukiPathAMD64, isoPathAMD64)
 		if err != nil {
@@ -99,7 +126,7 @@ func Run(
 			return fmt.Errorf("error building arm64 image: %w", err)
 		}
 
-		// Push AMD64 and ARM64 images first
+		// Push AMD64 and ARM64 images first to the store
 		if err := s.Push(ctx, tagName+"-amd64", amd64Img); err != nil {
 			return fmt.Errorf("error pushing amd64 image: %w", err)
 		}
@@ -134,28 +161,6 @@ func Run(
 		return nil
 	}
 
-	// Single arch build
-	var rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath string
-
-	switch arch {
-	case "amd64":
-		rootFSPath = rootFSPathAMD64
-		squashFSPath = squashFSPathAMD64
-		initRAMFSPath = initRAMFSPathAMD64
-		kernelPath = kernelPathAMD64
-		ukiPath = ukiPathAMD64
-		isoPath = isoPathAMD64
-	case "arm64":
-		rootFSPath = rootFSPathARM64
-		squashFSPath = squashFSPathARM64
-		initRAMFSPath = initRAMFSPathARM64
-		kernelPath = kernelPathARM64
-		ukiPath = ukiPathARM64
-		isoPath = isoPathARM64
-	default:
-		return fmt.Errorf("unsupported architecture: %s", arch)
-	}
-
 	img, err := buildImage(ctx, rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath)
 	if err != nil {
 		return fmt.Errorf("error building image: %w", err)
@@ -165,7 +170,7 @@ func Run(
 		return fmt.Errorf("error pushing image: %w", err)
 	}
 
-	fmt.Println("Successfully built and pushed", tagName)
+	fmt.Println("Successfully built", tagName)
 	return nil
 }
 
@@ -206,4 +211,24 @@ func buildImage(
 	}
 
 	return builder.Complete()
+}
+
+// Helper function to parse multi-arch paths
+func parseMultiArchPaths(paths []string, flagName string) (string, string, error) {
+	var amd64Path, arm64Path string
+	for _, p := range paths {
+		parts := strings.SplitN(p, "=", 2)
+		if len(parts) != 2 {
+			return "", "", fmt.Errorf("invalid format for --%s, expected 'arch=path'", flagName)
+		}
+		switch parts[0] {
+		case "amd64":
+			amd64Path = parts[1]
+		case "arm64":
+			arm64Path = parts[1]
+		default:
+			return "", "", fmt.Errorf("unsupported architecture: %s", parts[0])
+		}
+	}
+	return amd64Path, arm64Path, nil
 }
