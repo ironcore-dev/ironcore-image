@@ -11,6 +11,7 @@ import (
 
 	ironcoreimage "github.com/ironcore-dev/ironcore-image"
 	"github.com/ironcore-dev/ironcore-image/cmd/common"
+	ocicontent "github.com/ironcore-dev/ironcore-image/oci/content"
 	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -70,6 +71,17 @@ func Run(ctx context.Context, storeFactory common.StoreFactory, srcImage string)
 	img, err := s.Resolve(ctx, ref)
 	if err != nil {
 		return fmt.Errorf("error getting image: %w", err)
+	}
+
+	desc := img.Descriptor()
+	if desc.MediaType == ocispec.MediaTypeImageIndex {
+		indexManifest, err := ocicontent.GetIndexManifest(ctx, img)
+		if err != nil {
+			return fmt.Errorf("error reading index manifest: %w", err)
+		}
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(indexManifest) // Directly encode the indexManifest
 	}
 
 	manifest, err := img.Manifest(ctx)
