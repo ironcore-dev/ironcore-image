@@ -19,13 +19,13 @@ import (
 )
 
 type ArchConfig struct {
-	Arch      string
-	RootFS    string
-	InitRAMFS string
-	Kernel    string
-	SquashFS  string
-	UKI       string
-	ISO       string
+	Arch      *string
+	RootFS    *string
+	InitRAMFS *string
+	Kernel    *string
+	SquashFS  *string
+	UKI       *string
+	ISO       *string
 }
 
 type archConfigs []ArchConfig
@@ -46,19 +46,19 @@ func (ac *archConfigs) Set(value string) error {
 		key, val := kv[0], kv[1]
 		switch key {
 		case "arch":
-			config.Arch = val
+			config.Arch = &val
 		case "rootfs":
-			config.RootFS = val
+			config.RootFS = &val
 		case "initramfs":
-			config.InitRAMFS = val
+			config.InitRAMFS = &val
 		case "kernel":
-			config.Kernel = val
+			config.Kernel = &val
 		case "squashfs":
-			config.SquashFS = val
+			config.SquashFS = &val
 		case "uki":
-			config.UKI = val
+			config.UKI = &val
 		case "iso":
-			config.ISO = val
+			config.ISO = &val
 		default:
 			return fmt.Errorf("unknown field %q in --config", key)
 		}
@@ -108,18 +108,18 @@ func Run(
 	for _, config := range archConfigs {
 		img, err := buildImage(ctx, config.RootFS, config.SquashFS, config.InitRAMFS, config.Kernel, config.UKI, config.ISO)
 		if err != nil {
-			return fmt.Errorf("error building image for arch %s: %w", config.Arch, err)
+			return fmt.Errorf("error building image for arch %s: %w", *config.Arch, err)
 		}
 
-		tag := fmt.Sprintf("%s-%s", tagName, config.Arch)
+		tag := fmt.Sprintf("%s-%s", tagName, *config.Arch)
 		if err := s.Push(ctx, tag, img); err != nil {
-			return fmt.Errorf("error pushing image for arch %s: %w", config.Arch, err)
+			return fmt.Errorf("error pushing image for arch %s: %w", *config.Arch, err)
 		}
 
-		fmt.Printf("Successfully built and pushed image for arch %s\n", config.Arch)
+		fmt.Printf("Successfully built and pushed image for arch %s\n", *config.Arch)
 
 		// Add the descriptor with platform information to the manifests
-		manifests = append(manifests, withPlatform(img.Descriptor(), config.Arch, "linux"))
+		manifests = append(manifests, withPlatform(img.Descriptor(), *config.Arch, "linux"))
 	}
 
 	// Build index manifest
@@ -155,30 +155,30 @@ func withPlatform(desc ocispec.Descriptor, arch, os string) ocispec.Descriptor {
 
 func buildImage(
 	_ context.Context,
-	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath string,
+	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath *string,
 ) (image.Image, error) {
 	builder := imageutil.NewJSONConfigBuilder(
 		&ironcoreimage.Config{},
 		imageutil.WithMediaType(ironcoreimage.ConfigMediaType),
 	)
 
-	if rootFSPath != "" {
-		builder = builder.FileLayer(rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType))
+	if rootFSPath != nil {
+		builder = builder.FileLayer(*rootFSPath, imageutil.WithMediaType(ironcoreimage.RootFSLayerMediaType))
 	}
-	if initRAMFSPath != "" {
-		builder = builder.FileLayer(initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType))
+	if initRAMFSPath != nil {
+		builder = builder.FileLayer(*initRAMFSPath, imageutil.WithMediaType(ironcoreimage.InitRAMFSLayerMediaType))
 	}
-	if kernelPath != "" {
-		builder = builder.FileLayer(kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType))
+	if kernelPath != nil {
+		builder = builder.FileLayer(*kernelPath, imageutil.WithMediaType(ironcoreimage.KernelLayerMediaType))
 	}
-	if squashFSPath != "" {
-		builder = builder.FileLayer(squashFSPath, imageutil.WithMediaType(ironcoreimage.SquashFSLayerMediaType))
+	if squashFSPath != nil {
+		builder = builder.FileLayer(*squashFSPath, imageutil.WithMediaType(ironcoreimage.SquashFSLayerMediaType))
 	}
-	if ukiPath != "" {
-		builder = builder.FileLayer(ukiPath, imageutil.WithMediaType(ironcoreimage.UKILayerMediaType))
+	if ukiPath != nil {
+		builder = builder.FileLayer(*ukiPath, imageutil.WithMediaType(ironcoreimage.UKILayerMediaType))
 	}
-	if isoPath != "" {
-		builder = builder.FileLayer(isoPath, imageutil.WithMediaType(ironcoreimage.ISOLayerMediaType))
+	if isoPath != nil {
+		builder = builder.FileLayer(*isoPath, imageutil.WithMediaType(ironcoreimage.ISOLayerMediaType))
 	}
 
 	return builder.Complete()
