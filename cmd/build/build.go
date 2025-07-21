@@ -6,6 +6,7 @@ package build
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/opencontainers/image-spec/specs-go"
@@ -26,6 +27,7 @@ type ArchConfig struct {
 	SquashFS  *string
 	UKI       *string
 	ISO       *string
+	CMDLine   *string
 }
 
 type archConfigs []ArchConfig
@@ -59,6 +61,8 @@ func (ac *archConfigs) Set(value string) error {
 			config.UKI = &val
 		case "iso":
 			config.ISO = &val
+		case "cmdline":
+			config.CMDLine = &val
 		default:
 			return fmt.Errorf("unknown field %q in --config", key)
 		}
@@ -76,6 +80,7 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		tagName string
 
 		archConfigs archConfigs
+		annotations map[string]string
 	)
 
 	cmd := &cobra.Command{
@@ -83,12 +88,13 @@ func Command(storeFactory common.StoreFactory) *cobra.Command {
 		Short: "Build an image and store it to the local store with an optional tag.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			return Run(ctx, storeFactory, tagName, archConfigs)
+			return Run(ctx, storeFactory, tagName, archConfigs, annotations)
 		},
 	}
 
 	cmd.Flags().StringVar(&tagName, "tag", "", "Optional tag of image.")
 	cmd.Flags().Var(&archConfigs, "config", "Architecture-specific configuration in the format 'arch=amd64,rootfs=path,initramfs=path'. Can be specified multiple times.")
+	cmd.Flags().StringToStringVar(&annotations, "annotations", nil, "Annotations for the IndexManifest in the format 'key=value'. Can specify multiple key-value pairs.")
 
 	return cmd
 }
@@ -98,6 +104,7 @@ func Run(
 	storeFactory common.StoreFactory,
 	tagName string,
 	archConfigs archConfigs,
+	annotations map[string]string,
 ) error {
 	s, err := storeFactory()
 	manifests := make([]ocispec.Descriptor, 0, len(archConfigs))
@@ -106,7 +113,7 @@ func Run(
 	}
 
 	for _, config := range archConfigs {
-		img, err := buildImage(ctx, config.RootFS, config.SquashFS, config.InitRAMFS, config.Kernel, config.UKI, config.ISO)
+		img, err := buildImage(ctx, config.RootFS, config.SquashFS, config.InitRAMFS, config.Kernel, config.UKI, config.ISO, config.CMDLine)
 		if err != nil {
 			return fmt.Errorf("error building image for arch %s: %w", *config.Arch, err)
 		}
@@ -127,8 +134,9 @@ func Run(
 		Versioned: specs.Versioned{
 			SchemaVersion: 2,
 		},
-		MediaType: ocispec.MediaTypeImageIndex,
-		Manifests: manifests,
+		MediaType:   ocispec.MediaTypeImageIndex,
+		Manifests:   manifests,
+		Annotations: annotations,
 	}
 
 	indexImage, err := imageutil.NewIndexImage(index)
@@ -150,15 +158,25 @@ func withPlatform(desc ocispec.Descriptor, arch, os string) ocispec.Descriptor {
 		Architecture: arch,
 		OS:           os,
 	}
+	desc.MediaType = ocispec.MediaTypeImageManifest
 	return desc
 }
 
 func buildImage(
 	_ context.Context,
-	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath *string,
+	rootFSPath, squashFSPath, initRAMFSPath, kernelPath, ukiPath, isoPath, cmdLinePath *string,
 ) (image.Image, error) {
+	var cmdLineContent string
+	if cmdLinePath != nil {
+		content, err := os.ReadFile(*cmdLinePath)
+		if err != nil {
+			return nil, fmt.Errorf("error reading cmdline file: %w", err)
+		}
+		cmdLineContent = string(content)
+	}
+
 	builder := imageutil.NewJSONConfigBuilder(
-		&ironcoreimage.Config{},
+		&ironcoreimage.Config{CommandLine: cmdLineContent},
 		imageutil.WithMediaType(ironcoreimage.ConfigMediaType),
 	)
 
