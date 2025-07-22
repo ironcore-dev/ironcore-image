@@ -37,7 +37,11 @@ func Run(ctx context.Context, storeFactory common.StoreFactory) error {
 		return fmt.Errorf("could not create layout: %w", err)
 	}
 
-	descs, err := s.Layout().Indexer().List(ctx, descriptormatcher.MediaTypes(ocispec.MediaTypeImageManifest))
+	descs, err := s.Layout().Indexer().List(ctx, descriptormatcher.MediaTypes(
+		ocispec.MediaTypeImageManifest,
+		ocispec.MediaTypeImageIndex,
+	))
+
 	if err != nil {
 		return fmt.Errorf("error listing images: %w", err)
 	}

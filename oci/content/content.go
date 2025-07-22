@@ -125,3 +125,46 @@ func (i *image) Layers(ctx context.Context) ([]ociimage.Layer, error) {
 func Image(provider content.Provider, desc ocispec.Descriptor) ociimage.Image {
 	return &image{layer{provider, desc}}
 }
+
+func IndexImage(provider content.Provider, desc ocispec.Descriptor) ociimage.Image {
+	return &indexImage{layer{provider, desc}}
+}
+
+type indexImage struct {
+	layer
+}
+
+func (i *indexImage) Layers(ctx context.Context) ([]ociimage.Layer, error) {
+	return nil, fmt.Errorf("index manifests do not have layers")
+}
+
+func (i *indexImage) IndexManifest(ctx context.Context) (*ocispec.Index, error) {
+	data, err := content.ReadBlob(ctx, i.provider, i.descriptor)
+	if err != nil {
+		return nil, fmt.Errorf("error reading blob for descriptor %s: %w", i.descriptor.Digest, err)
+	}
+
+	var indexManifest ocispec.Index
+	if err := json.Unmarshal(data, &indexManifest); err != nil {
+		return nil, fmt.Errorf("error unmarshaling index manifest: %w", err)
+	}
+	return &indexManifest, nil
+}
+
+func (i *indexImage) Manifest(ctx context.Context) (*ocispec.Manifest, error) {
+	// Index manifests do not have a single manifest, so return an error
+	return nil, fmt.Errorf("index manifests do not have a single manifest")
+}
+
+func (i *indexImage) Config(ctx context.Context) (ociimage.Layer, error) {
+	// Index manifests do not have a config layer, so return an error
+	return nil, fmt.Errorf("index manifests do not have a config layer")
+}
+
+func GetIndexManifest(ctx context.Context, img ociimage.Image) (*ocispec.Index, error) {
+	indexImg, ok := img.(*indexImage)
+	if !ok {
+		return nil, fmt.Errorf("image is not an index image")
+	}
+	return indexImg.IndexManifest(ctx)
+}

@@ -30,7 +30,6 @@ linters:
     - govet
     - ineffassign
     - ginkgolinter
-    - lll
     - misspell
     - nakedret
     - prealloc

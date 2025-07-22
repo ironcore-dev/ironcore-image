@@ -103,7 +103,9 @@ func (b *Builder) Complete(opts ...DescriptorOpt) (image.Image, error) {
 	for _, opt := range opts {
 		opt(&desc)
 	}
-	desc.MediaType = ocispec.MediaTypeImageManifest
+	if desc.MediaType == "" {
+		desc.MediaType = ocispec.MediaTypeImageManifest
+	}
 	desc.Digest = digest.FromBytes(data)
 	desc.Size = int64(len(data))
 
@@ -145,4 +147,61 @@ func (c *composite) Config(ctx context.Context) (image.Layer, error) {
 
 func (c *composite) Layers(ctx context.Context) ([]image.Layer, error) {
 	return c.layers, nil
+}
+
+func NewIndexImage(index ocispec.Index) (image.Image, error) {
+	data, err := json.Marshal(index)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling index manifest: %w", err)
+	}
+
+	desc := ocispec.Descriptor{
+		MediaType: ocispec.MediaTypeImageIndex,
+		Digest:    digest.FromBytes(data),
+		Size:      int64(len(data)),
+	}
+
+	emptyConfig := BytesLayer([]byte("{}"), WithMediaType("application/vnd.oci.image.config.v1+json"))
+	return &indexImage{
+		descriptor: desc,
+		index:      index,
+		config:     emptyConfig,
+		layers:     nil,
+	}, nil
+}
+
+type indexImage struct {
+	descriptor ocispec.Descriptor
+	index      ocispec.Index
+	config     image.Layer
+	layers     []image.Layer
+}
+
+func (i *indexImage) Descriptor() ocispec.Descriptor {
+	return i.descriptor
+}
+
+func (i *indexImage) Content(ctx context.Context) (io.ReadCloser, error) {
+	data, err := json.Marshal(i.index)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling index manifest: %w", err)
+	}
+
+	return io.NopCloser(bytes.NewReader(data)), nil
+}
+
+func (i *indexImage) Manifest(ctx context.Context) (*ocispec.Manifest, error) {
+	return nil, fmt.Errorf("indexImage has no manifest")
+}
+
+func (i *indexImage) Index(ctx context.Context) (ocispec.Index, error) {
+	return i.index, nil
+}
+
+func (i *indexImage) Config(ctx context.Context) (image.Layer, error) {
+	return i.config, nil
+}
+
+func (i *indexImage) Layers(ctx context.Context) ([]image.Layer, error) {
+	return i.layers, nil
 }

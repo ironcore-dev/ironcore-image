@@ -4,13 +4,17 @@
 package remote
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/remotes"
 	"github.com/containerd/errdefs"
+	ocicontent "github.com/ironcore-dev/ironcore-image/oci/content"
 	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/pkg/auth"
 	"oras.land/oras-go/pkg/auth/docker"
 )
@@ -61,6 +65,42 @@ func (r *Registry) pushLayer(ctx context.Context, pusher remotes.Pusher, layer o
 }
 
 func (r *Registry) Push(ctx context.Context, ref string, img ociimage.Image) error {
+
+	if img.Descriptor().MediaType == ocispec.MediaTypeImageIndex {
+		pusher, err := r.resolver.Pusher(ctx, ref)
+		if err != nil {
+			return fmt.Errorf("error getting pusher for %s: %w", ref, err)
+		}
+
+		w, err := pusher.Push(ctx, img.Descriptor())
+		if err != nil {
+			if !errdefs.IsAlreadyExists(err) {
+				return fmt.Errorf("error getting writer for index manifest: %w", err)
+			}
+			return nil
+		}
+
+		indexData, err := ocicontent.GetIndexManifest(ctx, img)
+		if err != nil {
+			_ = w.Close()
+			return fmt.Errorf("error getting index manifest content: %w", err)
+		}
+
+		encodedData, err := json.Marshal(indexData)
+		if err != nil {
+			_ = w.Close()
+			return fmt.Errorf("error marshaling index manifest: %w", err)
+		}
+		if err := content.Copy(ctx, w, bytes.NewReader(encodedData), img.Descriptor().Size, img.Descriptor().Digest); err != nil {
+			return fmt.Errorf("error copying index manifest: %w", err)
+		}
+
+		if err := w.Close(); err != nil {
+			return fmt.Errorf("error closing writer for index manifest: %w", err)
+		}
+		return nil
+	}
+
 	pusher, err := r.resolver.Pusher(ctx, ref)
 	if err != nil {
 		return fmt.Errorf("error getting pusher for %s: %w", ref, err)

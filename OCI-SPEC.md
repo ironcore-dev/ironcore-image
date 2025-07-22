@@ -22,7 +22,7 @@ Following this specification ensures compatibility with the IronCore metal autom
   "mediaType": "application/vnd.oci.image.index.v1+json",
   "manifests": [
     {
-      "mediaType": "application/vnd.ironcore.image.artifacts.v1+json",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
       "digest": "sha256:ijkl9012qrst7890uvwx1234yzab5678abcd1234efgh5678mnop3456",
       "size": 2345,
       "platform": {
@@ -31,7 +31,7 @@ Following this specification ensures compatibility with the IronCore metal autom
       }
     },
     {
-      "mediaType": "application/vnd.ironcore.image.artifacts.v1+json",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
       "digest": "sha256:mnop3456qrst7890uvwx1234yzab5678abcd1234efgh5678ijkl9012",
       "size": 6789,
       "platform": {
@@ -48,7 +48,7 @@ Following this specification ensures compatibility with the IronCore metal autom
 ```json
 {
   "schemaVersion": 2,
-  "mediaType": "application/vnd.ironcore.image.artifacts.v1+json",
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "config": {
     "mediaType": "application/vnd.ironcore.image.config.v1+json",
     "digest": "sha256:configdigest1234abcd5678efgh9012ijkl3456mnop7890qrst",
@@ -76,11 +76,6 @@ Following this specification ensures compatibility with the IronCore metal autom
       "size": 536870912
     },
     {
-      "mediaType": "application/vnd.ironcore.image.cmdline",
-      "digest": "sha256:cmdlineabcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234",
-      "size": 1024
-    },
-    {
       "mediaType": "application/vnd.ironcore.image.uki",
       "digest": "sha256:ukiabcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234",
       "size": 15728640
@@ -104,7 +99,7 @@ Following this specification ensures compatibility with the IronCore metal autom
 
 {
   "schemaVersion": 2,
-  "mediaType": "application/vnd.ironcore.image.artifacts.v1+json",
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "config": {
     "mediaType": "application/vnd.ironcore.image.config.v1+json",
     "digest": "sha256:configdigest5678efgh9012ijkl3456mnop7890qrstabcd1234",
@@ -127,11 +122,6 @@ Following this specification ensures compatibility with the IronCore metal autom
       "size": 536870912
     },
     {
-      "mediaType": "application/vnd.ironcore.image.cmdline",
-      "digest": "sha256:cmdlineabcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234",
-      "size": 1024
-    },
-    {
       "mediaType": "application/vnd.ironcore.image.uki",
       "digest": "sha256:ukiabcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234",
       "size": 15728640
@@ -149,5 +139,3 @@ Following this specification ensures compatibility with the IronCore metal autom
   }
 }
 ```
-
-
