@@ -36,7 +36,7 @@ type image struct {
 }
 
 func (i *image) init(ctx context.Context) {
-	i.Once.Do(func() {
+	i.Do(func() {
 		rc, err := i.Content(ctx)
 		if err != nil {
 			i.err = fmt.Errorf("error getting content: %w", err)
