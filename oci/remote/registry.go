@@ -20,10 +20,11 @@ import (
 )
 
 type Registry struct {
-	resolver remotes.Resolver
+	resolver       remotes.Resolver
+	targetPlatform *ocispec.Platform
 }
 
-func (r *Registry) Resolve(ctx context.Context, ref string, platform *ocispec.Platform) (ociimage.Image, error) {
+func (r *Registry) Resolve(ctx context.Context, ref string) (ociimage.Image, error) {
 	_, desc, err := r.resolver.Resolve(ctx, ref)
 	if err != nil {
 		return nil, fmt.Errorf("error resolving %s: %w", ref, err)
@@ -43,16 +44,16 @@ func (r *Registry) Resolve(ctx context.Context, ref string, platform *ocispec.Pl
 		if err != nil {
 			return nil, fmt.Errorf("error fetching index blob: %w", err)
 		}
-		defer rc.Close()
+		defer func() { _ = rc.Close() }()
 
 		var indexManifest ocispec.Index
 		if err := json.NewDecoder(rc).Decode(&indexManifest); err != nil {
 			return nil, fmt.Errorf("error decoding image index manifest: %w", err)
 		}
 
-		matched := matchPlatform(indexManifest.Manifests, platform)
+		matched := matchPlatform(indexManifest.Manifests, r.targetPlatform)
 		if matched == nil {
-			return nil, fmt.Errorf("no matching platform found in index for platform %+v", platform)
+			return nil, fmt.Errorf("no matching platform found in index for platform %+v", r.targetPlatform)
 		}
 
 		return Image(fetcher, *matched), nil
@@ -174,5 +175,19 @@ func DockerRegistry(configPaths []string, opts ...auth.ResolverOption) (*Registr
 		return nil, fmt.Errorf("error creating resolver: %w", err)
 	}
 
-	return &Registry{resolver}, nil
+	return &Registry{resolver: resolver}, nil
+}
+
+func DockerRegistryWithPlatform(configPaths []string, platform *ocispec.Platform, opts ...auth.ResolverOption) (*Registry, error) {
+	dockerClient, err := docker.NewClient(configPaths...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating docker client: %w", err)
+	}
+
+	resolver, err := dockerClient.ResolverWithOpts(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating resolver: %w", err)
+	}
+
+	return &Registry{resolver: resolver, targetPlatform: platform}, nil
 }
