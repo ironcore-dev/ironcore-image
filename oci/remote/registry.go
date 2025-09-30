@@ -20,7 +20,8 @@ import (
 )
 
 type Registry struct {
-	resolver remotes.Resolver
+	resolver       remotes.Resolver
+	targetPlatform *ocispec.Platform
 }
 
 func (r *Registry) Resolve(ctx context.Context, ref string) (ociimage.Image, error) {
@@ -34,7 +35,51 @@ func (r *Registry) Resolve(ctx context.Context, ref string) (ociimage.Image, err
 		return nil, fmt.Errorf("error getting fetcher for %s: %w", ref, err)
 	}
 
-	return Image(fetcher, desc), nil
+	switch desc.MediaType {
+	case ocispec.MediaTypeImageManifest:
+		return Image(fetcher, desc), nil
+
+	case ocispec.MediaTypeImageIndex:
+		rc, err := fetcher.Fetch(ctx, desc)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching index blob: %w", err)
+		}
+		defer func() { _ = rc.Close() }()
+
+		var indexManifest ocispec.Index
+		if err := json.NewDecoder(rc).Decode(&indexManifest); err != nil {
+			return nil, fmt.Errorf("error decoding image index manifest: %w", err)
+		}
+
+		matched := matchPlatform(indexManifest.Manifests, r.targetPlatform)
+		if matched == nil {
+			return nil, fmt.Errorf("no matching platform found in index for platform %+v", r.targetPlatform)
+		}
+
+		return Image(fetcher, *matched), nil
+
+	default:
+		return nil, fmt.Errorf("unsupported media type: %s", desc.MediaType)
+	}
+}
+
+func matchPlatform(manifests []ocispec.Descriptor, target *ocispec.Platform) *ocispec.Descriptor {
+	if target == nil {
+		if len(manifests) > 0 {
+			return &manifests[0]
+		}
+		return nil
+	}
+
+	for _, m := range manifests {
+		if m.Platform == nil {
+			continue
+		}
+		if m.Platform.OS == target.OS && m.Platform.Architecture == target.Architecture {
+			return &m
+		}
+	}
+	return nil
 }
 
 func (r *Registry) pushLayer(ctx context.Context, pusher remotes.Pusher, layer ociimage.Layer) error {
@@ -130,5 +175,19 @@ func DockerRegistry(configPaths []string, opts ...auth.ResolverOption) (*Registr
 		return nil, fmt.Errorf("error creating resolver: %w", err)
 	}
 
-	return &Registry{resolver}, nil
+	return &Registry{resolver: resolver}, nil
+}
+
+func DockerRegistryWithPlatform(configPaths []string, platform *ocispec.Platform, opts ...auth.ResolverOption) (*Registry, error) {
+	dockerClient, err := docker.NewClient(configPaths...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating docker client: %w", err)
+	}
+
+	resolver, err := dockerClient.ResolverWithOpts(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating resolver: %w", err)
+	}
+
+	return &Registry{resolver: resolver, targetPlatform: platform}, nil
 }
