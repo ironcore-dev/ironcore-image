@@ -64,12 +64,17 @@ func (s *Store) referenceToMatcher(ref string) (descriptormatcher.Matcher, error
 			name = fmt.Sprintf("%s:%s", name, tagged.Tag())
 		}
 
+		if digested, ok := named.(reference.Digested); ok {
+			name = fmt.Sprintf("%s@%s", name, digested.Digest())
+		}
+
 		matchers = append(matchers, descriptormatcher.Name(name))
 	}
 
 	if len(matchers) == 0 {
 		return nil, fmt.Errorf("could not construct matchers from ref %s", ref)
 	}
+
 	return descriptormatcher.And(matchers...), nil
 }
 
