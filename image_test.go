@@ -21,7 +21,7 @@ var _ = Describe("Image", func() {
 		kernelData, initramfsData, rootfsData, squashfsData []byte
 
 		configLayer, kernelLayer, initramfsLayer, rootfsLayer, squashfsLayer image.Layer
-		img                                                                  image.Image
+		img, legacyImg                                                       image.Image
 	)
 
 	BeforeEach(func() {
@@ -48,12 +48,41 @@ var _ = Describe("Image", func() {
 			Complete()
 		Expect(err).NotTo(HaveOccurred())
 		img = i
+
+		legacyC, err := imageutil.JSONValueLayer(config, imageutil.WithMediaType(LegacyConfigMediaType))
+		Expect(err).NotTo(HaveOccurred())
+		legacyConfigLayer := legacyC
+		legacyKernelLayer := imageutil.BytesLayer(kernelData, imageutil.WithMediaType(LegacyKernelLayerMediaType))
+		legacyInitramfsLayer := imageutil.BytesLayer(initramfsData, imageutil.WithMediaType(LegacyInitRAMFSLayerMediaType))
+		legacyRootfsLayer := imageutil.BytesLayer(rootfsData, imageutil.WithMediaType(LegacyRootFSLayerMediaType))
+		legacySquashfsLayer := imageutil.BytesLayer(squashfsData, imageutil.WithMediaType(LegacySquashFSLayerMediaType))
+
+		legacyI, err := imageutil.NewBuilder(legacyConfigLayer).
+			Layers(legacyKernelLayer, legacyInitramfsLayer, legacyRootfsLayer, legacySquashfsLayer).
+			Complete()
+		Expect(err).NotTo(HaveOccurred())
+		legacyImg = legacyI
 	})
 
 	Describe("ResolveImage", func() {
 		It("should correctly resolve the image", func() {
 			By("resolving the image")
 			res, err := ResolveImage(ctx, img)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("inspecting the config")
+			Expect(res.Config).To(Equal(config))
+
+			By("inspecting the layers")
+			Expect(imageutil.ReadLayerContent(ctx, res.Kernel)).To(Equal(kernelData))
+			Expect(imageutil.ReadLayerContent(ctx, res.RootFS)).To(Equal(rootfsData))
+			Expect(imageutil.ReadLayerContent(ctx, res.InitRAMFs)).To(Equal(initramfsData))
+			Expect(imageutil.ReadLayerContent(ctx, res.SquashFS)).To(Equal(squashfsData))
+		})
+
+		It("should correctly resolve a legacy image", func() {
+			By("resolving the image")
+			res, err := ResolveImage(ctx, legacyImg)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("inspecting the config")

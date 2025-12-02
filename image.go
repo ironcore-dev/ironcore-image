@@ -100,6 +100,22 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			img.UKI = layer
 		case ISOLayerMediaType:
 			img.ISO = layer
+		case LegacyInitRAMFSLayerMediaType:
+			if img.InitRAMFs == nil {
+				img.InitRAMFs = layer
+			}
+		case LegacyKernelLayerMediaType:
+			if img.Kernel == nil {
+				img.Kernel = layer
+			}
+		case LegacyRootFSLayerMediaType:
+			if img.RootFS == nil {
+				img.RootFS = layer
+			}
+		case LegacySquashFSLayerMediaType:
+			if img.SquashFS == nil {
+				img.SquashFS = layer
+			}
 		default:
 			return nil, fmt.Errorf("unknown layer type %q", layer.Descriptor().MediaType)
 		}
