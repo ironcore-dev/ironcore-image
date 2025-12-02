@@ -20,6 +20,14 @@ const (
 	SquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs"
 	UKILayerMediaType       = "application/vnd.ironcore.image.uki"
 	ISOLayerMediaType       = "application/vnd.ironcore.image.iso"
+
+	//TODO: Remove legacy media types support in future versions
+
+	LegacyConfigMediaType         = "application/vnd.ironcore.image.config.v1alpha1+json"
+	LegacyRootFSLayerMediaType    = "application/vnd.ironcore.image.rootfs.v1alpha1.rootfs"
+	LegacyInitRAMFSLayerMediaType = "application/vnd.ironcore.image.initramfs.v1alpha1.initramfs"
+	LegacyKernelLayerMediaType    = "application/vnd.ironcore.image.vmlinuz.v1alpha1.vmlinuz"
+	LegacySquashFSLayerMediaType  = "application/vnd.ironcore.image.squashfs.v1alpha1.squashfs"
 )
 
 type Config struct {
@@ -55,6 +63,11 @@ func SetupContext(ctx context.Context) context.Context {
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, SquashFSLayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, UKILayerMediaType, "layer-")
 	ctx = remotes.WithMediaTypeKeyPrefix(ctx, ISOLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, LegacyConfigMediaType, "config-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, LegacyRootFSLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, LegacyInitRAMFSLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, LegacyKernelLayerMediaType, "layer-")
+	ctx = remotes.WithMediaTypeKeyPrefix(ctx, LegacySquashFSLayerMediaType, "layer-")
 	return ctx
 }
 
