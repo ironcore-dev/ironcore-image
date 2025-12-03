@@ -53,6 +53,13 @@ var layerTypeToMediaType = map[LayerType]string{
 	ISO:       ironcoreimage.ISOLayerMediaType,
 }
 
+var legacyLayerTypeToMediaType = map[LayerType]string{
+	RootFS:    ironcoreimage.LegacyRootFSLayerMediaType,
+	InitRAMFS: ironcoreimage.LegacyInitRAMFSLayerMediaType,
+	Kernel:    ironcoreimage.LegacyKernelLayerMediaType,
+	SquashFS:  ironcoreimage.LegacySquashFSLayerMediaType,
+}
+
 func Run(ctx context.Context, requestResolverFactory common.RequestResolverFactory, ref string, layer LayerType) error {
 	resolver, err := requestResolverFactory()
 	if err != nil {
@@ -72,8 +79,9 @@ func Run(ctx context.Context, requestResolverFactory common.RequestResolverFacto
 		}
 
 		var (
-			mediaType = layerTypeToMediaType[layer]
-			desc      *ocispec.Descriptor
+			mediaType       = layerTypeToMediaType[layer]
+			legacyMediaType = legacyLayerTypeToMediaType[layer]
+			desc            *ocispec.Descriptor
 		)
 		for _, layer := range manifest.Layers {
 			if layer.MediaType == mediaType {
@@ -83,7 +91,17 @@ func Run(ctx context.Context, requestResolverFactory common.RequestResolverFacto
 			}
 		}
 		if desc == nil {
-			return fmt.Errorf("no layer with type %s found", layer)
+			// If no matching media type was found for the given layer, check if this is a legacy image.
+			for _, layer := range manifest.Layers {
+				if layer.MediaType == legacyMediaType {
+					layer := layer
+					desc = &layer
+					break
+				}
+			}
+			if desc == nil {
+				return fmt.Errorf("no layer with type %s found", layer)
+			}
 		}
 
 		layerInfo, err := info.Layer(ctx, *desc)
