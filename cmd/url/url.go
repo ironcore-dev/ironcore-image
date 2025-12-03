@@ -22,6 +22,9 @@ const (
 	Kernel    LayerType = "kernel"
 	RootFS    LayerType = "rootfs"
 	InitRAMFS LayerType = "initramfs"
+	SquashFS  LayerType = "squashfs"
+	UKI       LayerType = "uki"
+	ISO       LayerType = "iso"
 )
 
 func Command(requestResolverFactory common.RequestResolverFactory) *cobra.Command {
@@ -45,6 +48,9 @@ var layerTypeToMediaType = map[LayerType]string{
 	RootFS:    ironcoreimage.RootFSLayerMediaType,
 	InitRAMFS: ironcoreimage.InitRAMFSLayerMediaType,
 	Kernel:    ironcoreimage.KernelLayerMediaType,
+	SquashFS:  ironcoreimage.SquashFSLayerMediaType,
+	UKI:       ironcoreimage.UKILayerMediaType,
+	ISO:       ironcoreimage.ISOLayerMediaType,
 }
 
 func Run(ctx context.Context, requestResolverFactory common.RequestResolverFactory, ref string, layer LayerType) error {
