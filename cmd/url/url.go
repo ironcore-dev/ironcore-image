@@ -22,6 +22,9 @@ const (
 	Kernel    LayerType = "kernel"
 	RootFS    LayerType = "rootfs"
 	InitRAMFS LayerType = "initramfs"
+	SquashFS  LayerType = "squashfs"
+	UKI       LayerType = "uki"
+	ISO       LayerType = "iso"
 )
 
 func Command(requestResolverFactory common.RequestResolverFactory) *cobra.Command {
@@ -45,6 +48,16 @@ var layerTypeToMediaType = map[LayerType]string{
 	RootFS:    ironcoreimage.RootFSLayerMediaType,
 	InitRAMFS: ironcoreimage.InitRAMFSLayerMediaType,
 	Kernel:    ironcoreimage.KernelLayerMediaType,
+	SquashFS:  ironcoreimage.SquashFSLayerMediaType,
+	UKI:       ironcoreimage.UKILayerMediaType,
+	ISO:       ironcoreimage.ISOLayerMediaType,
+}
+
+var legacyLayerTypeToMediaType = map[LayerType]string{
+	RootFS:    ironcoreimage.LegacyRootFSLayerMediaType,
+	InitRAMFS: ironcoreimage.LegacyInitRAMFSLayerMediaType,
+	Kernel:    ironcoreimage.LegacyKernelLayerMediaType,
+	SquashFS:  ironcoreimage.LegacySquashFSLayerMediaType,
 }
 
 func Run(ctx context.Context, requestResolverFactory common.RequestResolverFactory, ref string, layer LayerType) error {
@@ -66,8 +79,9 @@ func Run(ctx context.Context, requestResolverFactory common.RequestResolverFacto
 		}
 
 		var (
-			mediaType = layerTypeToMediaType[layer]
-			desc      *ocispec.Descriptor
+			mediaType       = layerTypeToMediaType[layer]
+			legacyMediaType = legacyLayerTypeToMediaType[layer]
+			desc            *ocispec.Descriptor
 		)
 		for _, layer := range manifest.Layers {
 			if layer.MediaType == mediaType {
@@ -77,7 +91,17 @@ func Run(ctx context.Context, requestResolverFactory common.RequestResolverFacto
 			}
 		}
 		if desc == nil {
-			return fmt.Errorf("no layer with type %s found", layer)
+			// If no matching media type was found for the given layer, check if this is a legacy image.
+			for _, layer := range manifest.Layers {
+				if layer.MediaType == legacyMediaType {
+					layer := layer
+					desc = &layer
+					break
+				}
+			}
+			if desc == nil {
+				return fmt.Errorf("no layer with type %s found", layer)
+			}
 		}
 
 		layerInfo, err := info.Layer(ctx, *desc)
