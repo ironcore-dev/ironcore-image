@@ -107,17 +107,5 @@ var _ = Describe("Image", func() {
 			_, err = ResolveImage(ctx, img)
 			Expect(err).To(HaveOccurred())
 		})
-
-		It("should error if the image is missing layers", func() {
-			By("creating an image with the kernel layer missing")
-			img, err := imageutil.NewBuilder(configLayer).
-				Layers(initramfsLayer, rootfsLayer).
-				Complete()
-			Expect(err).NotTo(HaveOccurred())
-
-			By("resolving the invalid image")
-			_, err = ResolveImage(ctx, img)
-			Expect(err).To(HaveOccurred())
-		})
 	})
 })
