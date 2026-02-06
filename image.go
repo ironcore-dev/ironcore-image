@@ -120,20 +120,6 @@ func ResolveImage(ctx context.Context, ociImg image.Image) (*Image, error) {
 			return nil, fmt.Errorf("unknown layer type %q", layer.Descriptor().MediaType)
 		}
 	}
-	var missing []string
-	if img.RootFS == nil {
-		missing = append(missing, "rootfs")
-	}
-	if img.Kernel == nil {
-		missing = append(missing, "kernel")
-	}
-	if img.InitRAMFs == nil {
-		missing = append(missing, "initramfs")
-	}
-	if len(missing) > 0 {
-		return nil, fmt.Errorf("incomplete image: components are missing: %v", missing)
-	}
-
 	return &img, nil
 }
 
