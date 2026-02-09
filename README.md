@@ -60,26 +60,36 @@ ironcore-image help
 
 This will print the available commands.
 
-To build an ironcore-image, you'll need the rootfs, initramfs and kernel
-of your desired operating system. Once you have them on disk, simply run
+To build an ironcore-image, prepare the OS artifacts for each target architecture
+and pass them via `--config`. You can repeat `--config` for multi-arch builds.
+Supported keys are `arch`, `rootfs`, `initramfs`, `kernel`, `squashfs`, `uki`,
+`iso`, and `cmdline`.
 
 ```shell
 ironcore-image build \
-  --rootfs-file <path to rootfs file> \
-  --initramfs-file <path to initramfs> \
-  --kernel-file <path to kernel file>
+  --tag my-image:latest \
+  --config arch=amd64,rootfs=./rootfs.ext4,initramfs=./initramfs.img,kernel=./vmlinuz
 ```
 
-This will build the image, put it into your local OCI store (usually at `~/.ironcore`)
-and print out the id of the built image.
+This will build the image, put it into your local OCI store (usually at `~/.ironcore`),
+and create a local index manifest tagged `my-image:latest`.
 
-To tag the image with a more fluent name, run
+For a multi-arch image, repeat `--config` for each architecture:
 
 ```shell
-ironcore-image tag <id> my-image:latest
+ironcore-image build \
+  --tag my-image:latest \
+  --config arch=amd64,rootfs=./rootfs-amd64.ext4,initramfs=./initramfs-amd64.img,kernel=./vmlinuz-amd64 \
+  --config arch=arm64,rootfs=./rootfs-arm64.ext4,initramfs=./initramfs-arm64.img,kernel=./vmlinuz-arm64
 ```
 
-This will tag the image with the name `my-image` and the tag latest.
+To add an additional tag to an existing local image, run
+
+```shell
+ironcore-image tag my-image:latest my-image:v1
+```
+
+This will tag the same image with the name `my-image` and the tag `v1`.
 
 To push an image to a remote registry, make sure you authenticated your
 local docker client with that registry. Consult your registry provider's documentation
@@ -88,16 +98,17 @@ for instructions.
 Once authenticated, tag your image, so it points towards that registry, e.g.
 
 ```shell
-ironcore-image tag <id> ghcr.io/ironcore-dev/ironcore-image/my-image:latest
+ironcore-image tag my-image:latest ghcr.io/ironcore-dev/ironcore-image/my-image:latest
 ```
 
-To push the image to the registry, run
+To push a multi-arch image and its sub-manifests to the registry, run
 
 ```shell
-ironcore-image push ghcr.io/ironcore-dev/ironcore-image/my-image:latest
+ironcore-image push ghcr.io/ironcore-dev/ironcore-image/my-image:latest --push-sub-manifests
 ```
 
-> :danger: This currently doesn't do any output, wait a while for it to be done.
+This pushes the index manifest and also pushes each arch-specific manifest under
+the `-<arch>` suffix (for example `my-image:latest-amd64`).
 
 To pull the pushed image, run
 
