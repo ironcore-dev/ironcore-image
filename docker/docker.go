@@ -14,8 +14,8 @@ import (
 	"github.com/containerd/containerd/remotes"
 	"github.com/containerd/containerd/remotes/docker"
 	"github.com/distribution/reference"
+	"github.com/ironcore-dev/ironcore-image/oci/remote"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	dockerauth "oras.land/oras-go/pkg/auth/docker"
 )
 
 type RequestResolver struct {
@@ -284,21 +284,18 @@ func (o *RequestResolverOptions) SetDefaults() {
 func NewRequestResolver(o RequestResolverOptions) (*RequestResolver, error) {
 	o.SetDefaults()
 
-	authC, err := dockerauth.NewClient(o.ConfigPaths...)
+	credFunc, err := remote.DockerCredentialFunc(o.ConfigPaths)
 	if err != nil {
-		return nil, fmt.Errorf("error instantiating client: %w", err)
+		return nil, fmt.Errorf("error creating credential function: %w", err)
 	}
 
-	c := authC.(*dockerauth.Client)
-
-	resolver, err := c.ResolverWithOpts()
-	if err != nil {
-		return nil, fmt.Errorf("error instantiating resolver: %w", err)
-	}
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		Credentials: credFunc,
+	})
 
 	authorizer := docker.NewDockerAuthorizer(
 		docker.WithAuthClient(o.Client),
-		docker.WithAuthCreds(c.Credential),
+		docker.WithAuthCreds(credFunc),
 		docker.WithAuthHeader(o.Header),
 	)
 
