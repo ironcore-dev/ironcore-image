@@ -43,7 +43,7 @@ func newCredentialStore(configPaths []string) (credentials.Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error creating primary credential store from %s: %w", configPaths[0], err)
 	}
-	var fallbacks []credentials.Store
+	fallbacks := make([]credentials.Store, 0, len(configPaths)-1)
 	for _, p := range configPaths[1:] {
 		s, err := credentials.NewStore(p, credentials.StoreOptions{})
 		if err != nil {

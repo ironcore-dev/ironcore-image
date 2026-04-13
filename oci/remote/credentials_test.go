@@ -35,7 +35,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 		var err error
 		tmpDir, err = os.MkdirTemp("", "credentials-test-*")
 		Expect(err).NotTo(HaveOccurred())
-		DeferCleanup(func() { os.RemoveAll(tmpDir) })
+		DeferCleanup(func() { _ = os.RemoveAll(tmpDir) })
 	})
 
 	It("should return credentials from a single config file", func() {
@@ -88,7 +88,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 
 		origEnv := os.Getenv("DOCKER_CONFIG")
 		Expect(os.Setenv("DOCKER_CONFIG", configDir)).To(Succeed())
-		DeferCleanup(func() { os.Setenv("DOCKER_CONFIG", origEnv) })
+		DeferCleanup(func() { _ = os.Setenv("DOCKER_CONFIG", origEnv) })
 
 		credFunc, err := DockerCredentialFunc(nil)
 		Expect(err).NotTo(HaveOccurred())
