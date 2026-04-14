@@ -270,9 +270,9 @@ func (u *RequestResolver) Resolve(ctx context.Context, ref string) (ManifestInfo
 }
 
 type RequestResolverOptions struct {
-	ConfigPaths []string
-	Client      *http.Client
-	Header      http.Header
+	ConfigPath string
+	Client     *http.Client
+	Header     http.Header
 }
 
 func (o *RequestResolverOptions) SetDefaults() {
@@ -284,7 +284,7 @@ func (o *RequestResolverOptions) SetDefaults() {
 func NewRequestResolver(o RequestResolverOptions) (*RequestResolver, error) {
 	o.SetDefaults()
 
-	credFunc, err := remote.DockerCredentialFunc(o.ConfigPaths)
+	credFunc, err := remote.DockerCredentialFunc(o.ConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("error creating credential function: %w", err)
 	}

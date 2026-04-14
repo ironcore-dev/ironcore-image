@@ -38,7 +38,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 		DeferCleanup(func() { _ = os.RemoveAll(tmpDir) })
 	})
 
-	It("should return credentials from a single config file", func() {
+	It("should return credentials from a config file", func() {
 		configPath := writeDockerConfig(tmpDir, `{
 			"auths": {
 				"registry.example.com": {
@@ -47,7 +47,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 			}
 		}`)
 
-		credFunc, err := DockerCredentialFunc([]string{configPath})
+		credFunc, err := DockerCredentialFunc(configPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		user, pass, err := credFunc("registry.example.com")
@@ -65,7 +65,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 			}
 		}`)
 
-		credFunc, err := DockerCredentialFunc([]string{configPath})
+		credFunc, err := DockerCredentialFunc(configPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		user, pass, err := credFunc("unknown.example.com")
@@ -74,8 +74,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 		Expect(pass).To(BeEmpty())
 	})
 
-	It("should use the default Docker config when no paths are provided", func() {
-		// Set DOCKER_CONFIG to a temp dir so we don't depend on the real ~/.docker
+	It("should use the default Docker config when no path is provided", func() {
 		configDir := filepath.Join(tmpDir, "docker")
 		Expect(os.Mkdir(configDir, 0700)).To(Succeed())
 		writeDockerConfig(configDir, `{
@@ -90,80 +89,13 @@ var _ = Describe("DockerCredentialFunc", func() {
 		Expect(os.Setenv("DOCKER_CONFIG", configDir)).To(Succeed())
 		DeferCleanup(func() { _ = os.Setenv("DOCKER_CONFIG", origEnv) })
 
-		credFunc, err := DockerCredentialFunc(nil)
+		credFunc, err := DockerCredentialFunc("")
 		Expect(err).NotTo(HaveOccurred())
 
 		user, pass, err := credFunc("default.example.com")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(user).To(Equal("defaultuser"))
 		Expect(pass).To(Equal("defaultpass"))
-	})
-
-	It("should use fallback config files when the primary has no match", func() {
-		primaryDir := filepath.Join(tmpDir, "primary")
-		Expect(os.Mkdir(primaryDir, 0700)).To(Succeed())
-		primaryPath := writeDockerConfig(primaryDir, `{
-			"auths": {
-				"primary.example.com": {
-					"auth": "`+basicAuth("primaryuser", "primarypass")+`"
-				}
-			}
-		}`)
-
-		fallbackDir := filepath.Join(tmpDir, "fallback")
-		Expect(os.Mkdir(fallbackDir, 0700)).To(Succeed())
-		fallbackPath := writeDockerConfig(fallbackDir, `{
-			"auths": {
-				"fallback.example.com": {
-					"auth": "`+basicAuth("fallbackuser", "fallbackpass")+`"
-				}
-			}
-		}`)
-
-		credFunc, err := DockerCredentialFunc([]string{primaryPath, fallbackPath})
-		Expect(err).NotTo(HaveOccurred())
-
-		By("returning credentials from the primary config")
-		user, pass, err := credFunc("primary.example.com")
-		Expect(err).NotTo(HaveOccurred())
-		Expect(user).To(Equal("primaryuser"))
-		Expect(pass).To(Equal("primarypass"))
-
-		By("falling back to the secondary config")
-		user, pass, err = credFunc("fallback.example.com")
-		Expect(err).NotTo(HaveOccurred())
-		Expect(user).To(Equal("fallbackuser"))
-		Expect(pass).To(Equal("fallbackpass"))
-	})
-
-	It("should prefer primary over fallback for the same host", func() {
-		primaryDir := filepath.Join(tmpDir, "primary")
-		Expect(os.Mkdir(primaryDir, 0700)).To(Succeed())
-		primaryPath := writeDockerConfig(primaryDir, `{
-			"auths": {
-				"shared.example.com": {
-					"auth": "`+basicAuth("primaryuser", "primarypass")+`"
-				}
-			}
-		}`)
-
-		fallbackDir := filepath.Join(tmpDir, "fallback")
-		Expect(os.Mkdir(fallbackDir, 0700)).To(Succeed())
-		fallbackPath := writeDockerConfig(fallbackDir, `{
-			"auths": {
-				"shared.example.com": {
-					"auth": "`+basicAuth("fallbackuser", "fallbackpass")+`"
-				}
-			}
-		}`)
-
-		credFunc, err := DockerCredentialFunc([]string{primaryPath, fallbackPath})
-		Expect(err).NotTo(HaveOccurred())
-
-		user, pass, err := credFunc("shared.example.com")
-		Expect(err).NotTo(HaveOccurred())
-		Expect(user).To(Equal("primaryuser"))
-		Expect(pass).To(Equal("primarypass"))
 	})
 
 	It("should return the refresh token when username and password are empty", func() {
@@ -175,7 +107,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 			}
 		}`)
 
-		credFunc, err := DockerCredentialFunc([]string{configPath})
+		credFunc, err := DockerCredentialFunc(configPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		user, secret, err := credFunc("token.example.com")
@@ -187,7 +119,7 @@ var _ = Describe("DockerCredentialFunc", func() {
 	It("should return empty credentials from an empty config file", func() {
 		configPath := writeDockerConfig(tmpDir, `{"auths": {}}`)
 
-		credFunc, err := DockerCredentialFunc([]string{configPath})
+		credFunc, err := DockerCredentialFunc(configPath)
 		Expect(err).NotTo(HaveOccurred())
 
 		user, pass, err := credFunc("any.example.com")

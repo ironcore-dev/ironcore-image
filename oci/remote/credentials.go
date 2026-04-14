@@ -12,10 +12,18 @@ import (
 
 // DockerCredentialFunc returns a credential function compatible with
 // containerd's docker.ResolverOptions.Credentials and docker.WithAuthCreds.
-// It reads Docker configuration from the given config paths.
-// If no paths are provided, the default Docker configuration is used.
-func DockerCredentialFunc(configPaths []string) (func(string) (string, string, error), error) {
-	store, err := newCredentialStore(configPaths)
+// It reads Docker configuration from the given config path.
+// If configPath is empty, the default Docker configuration is used.
+func DockerCredentialFunc(configPath string) (func(string) (string, string, error), error) {
+	var (
+		store credentials.Store
+		err   error
+	)
+	if configPath == "" {
+		store, err = credentials.NewStoreFromDocker(credentials.StoreOptions{})
+	} else {
+		store, err = credentials.NewStore(configPath, credentials.StoreOptions{})
+	}
 	if err != nil {
 		return nil, fmt.Errorf("error creating credential store: %w", err)
 	}
@@ -30,26 +38,4 @@ func DockerCredentialFunc(configPaths []string) (func(string) (string, string, e
 		}
 		return cred.Username, cred.Password, nil
 	}, nil
-}
-
-func newCredentialStore(configPaths []string) (credentials.Store, error) {
-	if len(configPaths) == 0 {
-		return credentials.NewStoreFromDocker(credentials.StoreOptions{})
-	}
-	if len(configPaths) == 1 {
-		return credentials.NewStore(configPaths[0], credentials.StoreOptions{})
-	}
-	primary, err := credentials.NewStore(configPaths[0], credentials.StoreOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error creating primary credential store from %s: %w", configPaths[0], err)
-	}
-	fallbacks := make([]credentials.Store, 0, len(configPaths)-1)
-	for _, p := range configPaths[1:] {
-		s, err := credentials.NewStore(p, credentials.StoreOptions{})
-		if err != nil {
-			return nil, fmt.Errorf("error creating credential store from %s: %w", p, err)
-		}
-		fallbacks = append(fallbacks, s)
-	}
-	return credentials.NewStoreWithFallbacks(primary, fallbacks...), nil
 }

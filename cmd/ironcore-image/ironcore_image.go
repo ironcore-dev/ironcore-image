@@ -18,14 +18,14 @@ import (
 
 func Command() *cobra.Command {
 	var (
-		storePath   string
-		configPaths []string
+		storePath  string
+		configPath string
 	)
 
 	var (
 		storeFactory           = common.DefaultStoreFactory(&storePath)
-		registryFactory        = common.DefaultRemoteRegistryFactory(configPaths)
-		requestResolverFactory = common.DefaultRequestResolverFactory(configPaths)
+		registryFactory        = common.DefaultRemoteRegistryFactory(configPath)
+		requestResolverFactory = common.DefaultRequestResolverFactory(configPath)
 	)
 
 	cmd := &cobra.Command{
@@ -45,7 +45,7 @@ func Command() *cobra.Command {
 	)
 
 	cmd.PersistentFlags().StringVar(&storePath, common.RecommendedStorePathFlagName, common.DefaultStorePath, common.RecommendedStorePathFlagUsage)
-	cmd.PersistentFlags().StringSliceVar(&configPaths, common.RecommendedDockerConfigPathsFlagName, nil, common.RecommendedDockerConfigPathsFlagName)
+	cmd.PersistentFlags().StringVar(&configPath, common.RecommendedDockerConfigPathsFlagName, "", common.RecommendedDockerConfigPathsFlagUsage)
 
 	return cmd
 }

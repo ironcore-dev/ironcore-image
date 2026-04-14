@@ -163,21 +163,12 @@ func (r *Registry) Push(ctx context.Context, ref string, img ociimage.Image) err
 	return nil
 }
 
-func DockerRegistry(configPaths []string) (*Registry, error) {
-	credFunc, err := DockerCredentialFunc(configPaths)
-	if err != nil {
-		return nil, fmt.Errorf("error creating credential function: %w", err)
-	}
-
-	resolver := docker.NewResolver(docker.ResolverOptions{
-		Credentials: credFunc,
-	})
-
-	return &Registry{resolver: resolver}, nil
+func DockerRegistry() (*Registry, error) {
+	return DockerRegistryWithConfigPath("")
 }
 
-func DockerRegistryWithPlatform(configPaths []string, platform *ocispec.Platform) (*Registry, error) {
-	credFunc, err := DockerCredentialFunc(configPaths)
+func DockerRegistryWithPlatform(platform *ocispec.Platform) (*Registry, error) {
+	credFunc, err := DockerCredentialFunc("")
 	if err != nil {
 		return nil, fmt.Errorf("error creating credential function: %w", err)
 	}
@@ -187,4 +178,17 @@ func DockerRegistryWithPlatform(configPaths []string, platform *ocispec.Platform
 	})
 
 	return &Registry{resolver: resolver, targetPlatform: platform}, nil
+}
+
+func DockerRegistryWithConfigPath(configPath string) (*Registry, error) {
+	credFunc, err := DockerCredentialFunc(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("error creating credential function: %w", err)
+	}
+
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		Credentials: credFunc,
+	})
+
+	return &Registry{resolver: resolver}, nil
 }
