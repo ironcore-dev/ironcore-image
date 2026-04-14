@@ -289,10 +289,6 @@ func NewRequestResolver(o RequestResolverOptions) (*RequestResolver, error) {
 		return nil, fmt.Errorf("error creating credential function: %w", err)
 	}
 
-	resolver := docker.NewResolver(docker.ResolverOptions{
-		Credentials: credFunc,
-	})
-
 	authorizer := docker.NewDockerAuthorizer(
 		docker.WithAuthClient(o.Client),
 		docker.WithAuthCreds(credFunc),
@@ -303,6 +299,10 @@ func NewRequestResolver(o RequestResolverOptions) (*RequestResolver, error) {
 		docker.WithPlainHTTP(docker.MatchLocalhost),
 		docker.WithAuthorizer(authorizer),
 	)
+
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		Hosts: hosts,
+	})
 
 	return &RequestResolver{
 		resolver: resolver,
