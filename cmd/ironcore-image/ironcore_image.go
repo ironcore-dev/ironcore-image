@@ -24,8 +24,8 @@ func Command() *cobra.Command {
 
 	var (
 		storeFactory           = common.DefaultStoreFactory(&storePath)
-		registryFactory        = common.DefaultRemoteRegistryFactory(configPath)
-		requestResolverFactory = common.DefaultRequestResolverFactory(configPath)
+		registryFactory        = common.DefaultRemoteRegistryFactory(&configPath)
+		requestResolverFactory = common.DefaultRequestResolverFactory(&configPath)
 	)
 
 	cmd := &cobra.Command{

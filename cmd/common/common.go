@@ -51,18 +51,18 @@ func DefaultStoreFactory(storePath *string) StoreFactory {
 // RemoteRegistryFactory is a factory for a remote.Registry.
 type RemoteRegistryFactory func() (*remote.Registry, error)
 
-func DefaultRemoteRegistryFactory(configPath string) RemoteRegistryFactory {
+func DefaultRemoteRegistryFactory(configPath *string) RemoteRegistryFactory {
 	return func() (*remote.Registry, error) {
-		return remote.DockerRegistryWithConfigPath(configPath)
+		return remote.DockerRegistryWithConfigPath(*configPath)
 	}
 }
 
 type RequestResolverFactory func() (*docker.RequestResolver, error)
 
-func DefaultRequestResolverFactory(configPath string) RequestResolverFactory {
+func DefaultRequestResolverFactory(configPath *string) RequestResolverFactory {
 	return func() (*docker.RequestResolver, error) {
 		return docker.NewRequestResolver(docker.RequestResolverOptions{
-			ConfigPath: configPath,
+			ConfigPath: *configPath,
 		})
 	}
 }
