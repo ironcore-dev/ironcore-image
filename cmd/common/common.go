@@ -17,13 +17,13 @@ import (
 )
 
 const (
-	RecommendedStorePathFlagName         = "store-path"
-	RecommendedDockerConfigPathsFlagName = "docker-config-path"
+	RecommendedStorePathFlagName        = "store-path"
+	RecommendedDockerConfigPathFlagName = "docker-config-path"
 )
 
 const (
-	RecommendedStorePathFlagUsage         = "Path where to store all local images and index information (such as tags)."
-	RecommendedDockerConfigPathsFlagUsage = "Path to look up for docker configuration. Leave empty for default location."
+	RecommendedStorePathFlagUsage        = "Path where to store all local images and index information (such as tags)."
+	RecommendedDockerConfigPathFlagUsage = "Path to look up for docker configuration. Leave empty for default location."
 )
 
 var (

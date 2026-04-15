@@ -45,7 +45,7 @@ func Command() *cobra.Command {
 	)
 
 	cmd.PersistentFlags().StringVar(&storePath, common.RecommendedStorePathFlagName, common.DefaultStorePath, common.RecommendedStorePathFlagUsage)
-	cmd.PersistentFlags().StringVar(&configPath, common.RecommendedDockerConfigPathsFlagName, "", common.RecommendedDockerConfigPathsFlagUsage)
+	cmd.PersistentFlags().StringVar(&configPath, common.RecommendedDockerConfigPathFlagName, "", common.RecommendedDockerConfigPathFlagUsage)
 
 	return cmd
 }
