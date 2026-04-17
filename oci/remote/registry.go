@@ -11,12 +11,11 @@ import (
 
 	"github.com/containerd/containerd/content"
 	"github.com/containerd/containerd/remotes"
+	"github.com/containerd/containerd/remotes/docker"
 	"github.com/containerd/errdefs"
 	ocicontent "github.com/ironcore-dev/ironcore-image/oci/content"
 	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"oras.land/oras-go/pkg/auth"
-	"oras.land/oras-go/pkg/auth/docker"
 )
 
 type Registry struct {
@@ -164,30 +163,32 @@ func (r *Registry) Push(ctx context.Context, ref string, img ociimage.Image) err
 	return nil
 }
 
-func DockerRegistry(configPaths []string, opts ...auth.ResolverOption) (*Registry, error) {
-	dockerClient, err := docker.NewClient(configPaths...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating docker client: %w", err)
-	}
-
-	resolver, err := dockerClient.ResolverWithOpts(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating resolver: %w", err)
-	}
-
-	return &Registry{resolver: resolver}, nil
+func DockerRegistry() (*Registry, error) {
+	return DockerRegistryWithConfigPath("")
 }
 
-func DockerRegistryWithPlatform(configPaths []string, platform *ocispec.Platform, opts ...auth.ResolverOption) (*Registry, error) {
-	dockerClient, err := docker.NewClient(configPaths...)
+func DockerRegistryWithPlatform(platform *ocispec.Platform) (*Registry, error) {
+	credFunc, err := DockerCredentialFunc("")
 	if err != nil {
-		return nil, fmt.Errorf("error creating docker client: %w", err)
+		return nil, fmt.Errorf("error creating credential function: %w", err)
 	}
 
-	resolver, err := dockerClient.ResolverWithOpts(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating resolver: %w", err)
-	}
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		Credentials: credFunc,
+	})
 
 	return &Registry{resolver: resolver, targetPlatform: platform}, nil
+}
+
+func DockerRegistryWithConfigPath(configPath string) (*Registry, error) {
+	credFunc, err := DockerCredentialFunc(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("error creating credential function: %w", err)
+	}
+
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		Credentials: credFunc,
+	})
+
+	return &Registry{resolver: resolver}, nil
 }

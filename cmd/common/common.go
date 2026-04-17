@@ -17,13 +17,13 @@ import (
 )
 
 const (
-	RecommendedStorePathFlagName         = "store-path"
-	RecommendedDockerConfigPathsFlagName = "docker-config-path"
+	RecommendedStorePathFlagName        = "store-path"
+	RecommendedDockerConfigPathFlagName = "docker-config-path"
 )
 
 const (
-	RecommendedStorePathFlagUsage         = "Path where to store all local images and index information (such as tags)."
-	RecommendedDockerConfigPathsFlagUsage = "Paths to look up for docker configuration. Leave empty for default location."
+	RecommendedStorePathFlagUsage        = "Path where to store all local images and index information (such as tags)."
+	RecommendedDockerConfigPathFlagUsage = "Path to look up for docker configuration. Leave empty for default location."
 )
 
 var (
@@ -51,18 +51,18 @@ func DefaultStoreFactory(storePath *string) StoreFactory {
 // RemoteRegistryFactory is a factory for a remote.Registry.
 type RemoteRegistryFactory func() (*remote.Registry, error)
 
-func DefaultRemoteRegistryFactory(configPaths []string) RemoteRegistryFactory {
+func DefaultRemoteRegistryFactory(configPath *string) RemoteRegistryFactory {
 	return func() (*remote.Registry, error) {
-		return remote.DockerRegistry(configPaths)
+		return remote.DockerRegistryWithConfigPath(*configPath)
 	}
 }
 
 type RequestResolverFactory func() (*docker.RequestResolver, error)
 
-func DefaultRequestResolverFactory(configPaths []string) RequestResolverFactory {
+func DefaultRequestResolverFactory(configPath *string) RequestResolverFactory {
 	return func() (*docker.RequestResolver, error) {
 		return docker.NewRequestResolver(docker.RequestResolverOptions{
-			ConfigPaths: configPaths,
+			ConfigPath: *configPath,
 		})
 	}
 }
