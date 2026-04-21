@@ -54,11 +54,11 @@ check: generate add-license fmt lint test-only ## Check the codebase. Useful bef
 
 .PHONY: build
 build: generate fmt ## Build the binary
-	go build -o bin/ironcore-image ./cmd
+	go build -o bin/ironcore-image ./cmd/ironcore-image
 
 .PHONY: install
 install: ## Install the binary to $GOBIN/ironcore-image.
-	go install .
+	go install ./cmd/ironcore-image
 
 ##@ Tools
 

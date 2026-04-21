@@ -12,7 +12,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	ironcoreimage "github.com/ironcore-dev/ironcore-image"
-	cmdironcoreimage "github.com/ironcore-dev/ironcore-image/cmd/ironcore-image"
 	"go.uber.org/zap"
 )
 
@@ -29,7 +28,7 @@ func main() {
 	log := zapr.NewLogger(zapLog)
 
 	ctx = logr.NewContext(ctx, log)
-	if err := cmdironcoreimage.Command().ExecuteContext(ctx); err != nil {
+	if err := Command().ExecuteContext(ctx); err != nil {
 		log.Error(err, "Error running command")
 		os.Exit(1)
 	}
