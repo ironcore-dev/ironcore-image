@@ -104,7 +104,7 @@ ironcore-image tag my-image:latest ghcr.io/ironcore-dev/ironcore-image/my-image:
 To push a multi-arch image and its sub-manifests to the registry, run
 
 ```shell
-ironcore-image push ghcr.io/ironcore-dev/ironcore-image/my-image:latest --push-sub-manifests
+ironcore-image push ghcr.io/ironcore-dev/ironcore-image/my-image:latest
 ```
 
 This pushes the index manifest and also pushes each arch-specific manifest under
