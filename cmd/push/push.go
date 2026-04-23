@@ -27,7 +27,7 @@ func Command(storeFactory common.StoreFactory, registryFactory common.RemoteRegi
 		},
 	}
 
-	cmd.Flags().BoolVar(&pushSubManifests, "push-sub-manifests", false, "Push sub-manifests along with the index manifest.")
+	cmd.Flags().BoolVar(&pushSubManifests, "push-sub-manifests", true, "Push sub-manifests along with the index manifest.")
 	return cmd
 }
 
