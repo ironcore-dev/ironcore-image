@@ -1,0 +1,4 @@
+kernel: vmlinuz
+initrds:
+- initrd
+stub: linuxaa64.efi.stub
