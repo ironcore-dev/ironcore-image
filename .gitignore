@@ -30,4 +30,9 @@ root.squashfs
 rootfs.initrd
 rootfs.initramfs
 rootfs.vmlinuz
+*.qcow2
+*.efi.stub
+initrd
+rootfs.tar
+vmlinuz
 
