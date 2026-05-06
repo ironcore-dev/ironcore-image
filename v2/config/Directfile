@@ -1,0 +1,3 @@
+kernel: vmlinuz
+initrds:
+- initrd

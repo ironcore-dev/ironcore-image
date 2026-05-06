@@ -174,7 +174,10 @@ func DockerRegistryWithPlatform(platform *ocispec.Platform) (*Registry, error) {
 	}
 
 	resolver := docker.NewResolver(docker.ResolverOptions{
-		Credentials: credFunc,
+		Hosts: docker.ConfigureDefaultRegistries(
+			docker.WithAuthorizer(docker.NewDockerAuthorizer(docker.WithAuthCreds(credFunc))),
+			docker.WithPlainHTTP(docker.MatchLocalhost),
+		),
 	})
 
 	return &Registry{resolver: resolver, targetPlatform: platform}, nil
@@ -187,7 +190,10 @@ func DockerRegistryWithConfigPath(configPath string) (*Registry, error) {
 	}
 
 	resolver := docker.NewResolver(docker.ResolverOptions{
-		Credentials: credFunc,
+		Hosts: docker.ConfigureDefaultRegistries(
+			docker.WithAuthorizer(docker.NewDockerAuthorizer(docker.WithAuthCreds(credFunc))),
+			docker.WithPlainHTTP(docker.MatchLocalhost),
+		),
 	})
 
 	return &Registry{resolver: resolver}, nil

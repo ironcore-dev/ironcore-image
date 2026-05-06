@@ -20,7 +20,7 @@ help: ## Display this help.
 
 .PHONY: add-license
 add-license: addlicense ## Add license headers to all go files.
-	find . -name '*.go' -exec $(ADDLICENSE) -c 'IronCore authors' {} +
+	find . -name '*.go' -exec $(ADDLICENSE) -f hack/license-header.txt {} +
 
 .PHONY: fmt
 fmt: goimports ## Run goimports against code.
@@ -75,7 +75,7 @@ GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 ## Tool Versions
 ADDLICENSE_VERSION ?= v1.1.1
 GOIMPORTS_VERSION ?= v0.31.0
-GOLANGCI_LINT_VERSION ?= v2.1
+GOLANGCI_LINT_VERSION ?= v2.15.0
 
 .PHONY: addlicense
 addlicense: $(ADDLICENSE) ## Download addlicense locally if necessary.
