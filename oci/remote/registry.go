@@ -64,7 +64,7 @@ func (r *Registry) Resolve(ctx context.Context, ref string) (ociimage.Image, err
 
 func matchPlatform(manifests []ocispec.Descriptor, target *ocispec.Platform) *ocispec.Descriptor {
 	if target == nil {
-		if len(manifests) > 0 {
+		if len(manifests) == 1 {
 			return &manifests[0]
 		}
 		return nil
