@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/containerd/containerd/content"
@@ -17,6 +18,8 @@ import (
 	ociimage "github.com/ironcore-dev/ironcore-image/oci/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
+
+var ErrNoPlatformMatch = errors.New("no matching platform found in index")
 
 type Registry struct {
 	resolver       remotes.Resolver
@@ -52,7 +55,7 @@ func (r *Registry) Resolve(ctx context.Context, ref string) (ociimage.Image, err
 
 		matched := matchPlatform(indexManifest.Manifests, r.targetPlatform)
 		if matched == nil {
-			return nil, fmt.Errorf("no matching platform found in index for platform %+v", r.targetPlatform)
+			return nil, fmt.Errorf("%w: platform not found %+v", ErrNoPlatformMatch, r.targetPlatform)
 		}
 
 		return Image(fetcher, *matched), nil
